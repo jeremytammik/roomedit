@@ -1,0 +1,15 @@
+{
+  "name": "roomedit",
+  "version": "0.0.1",
+  "description": "display and edit 2D room, furniture and equipment layout",
+  "attachments": ["index.html","raphael-min-jt.js"],
+  "modules": ["lib"],
+  "load": "lib/app",
+  "dependencies": {
+    "attachments": null,
+    "modules": null,
+    "properties": null,
+    "db": null,
+    "jquery": null
+  }
+}

@@ -1,0 +1,611 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+
+<h1>Room Editor 2</h1>
+
+<style>
+table{
+  border-collapse: collapse;
+}
+
+table, th, td{
+  border: 0px solid black;
+  padding: 5px;
+}
+
+.pointer{
+  cursor: pointer;
+}
+
+button:hover{
+  cursor: pointer;
+}
+</style>
+
+<div id="content"></div>
+
+<ul id="navigatorlist"></ul>
+
+<div id="editor"></div>
+
+<p id="current_furniture"></p>
+
+<script type="text/javascript" src="modules.js"></script>
+<script type="text/javascript" src="raphael-min-jt.js"></script>
+<script type="text/javascript">
+
+  var three_spaces = ' \u00a0 '; // unicode &nbsp;
+
+  function pluralSuffix( n ) { return 1 == n ? "" : "s"; }
+  function dotOrColon( n ) { return 0 == n ? "." : ":"; }
+
+  var current_furniture = null;
+  var all_furniture = [];
+
+  var xmin;
+  var ymin;
+  var xscale;
+  var yscale;
+  var tooltip;
+  var tooltip_bg;
+  var paper;
+
+  // rotation support
+
+  function rotate_item (item, angle) {
+    if( null != item ) {
+      item.rotate( angle );
+      item.data( "angle",
+        item.data( "angle" ) + angle );
+    }
+  }
+
+  function rotate_current_cw () {
+    rotate_item( current_furniture, 5 );
+  }
+
+  function rotate_current_ccw () {
+    rotate_item( current_furniture, -5 );
+  }
+
+  // save new furniture positions
+
+  function save(a) {
+
+    var db = require('db').current();
+
+    $('#save').attr("disabled", "disabled");
+
+    for( var i = 0; i < a.length; ++i ) {
+
+      var f = a[i];
+      var id = f.data("jid");
+      var txy = f.transform().toString().substring(1).split(/[,r]/);
+      var trxy = 'R' + f.data('angle')
+        + 'T' + txy[0] + "," + txy[1];
+
+      var fdoc = f.data("doc");
+      if( fdoc.hasOwnProperty('loop') ) {
+        delete fdoc.loop;
+      }
+      fdoc.transform = trxy;
+      db.saveDoc( fdoc,
+        function (err, data) {
+          if (err) {
+            return alert(err);
+          }
+        }
+      );
+    }
+  }
+
+  //function save_current() {
+  //  save([current_furniture]);
+  //}
+
+  function save_all() {
+    save( all_furniture );
+  }
+
+  function refresh() {
+    document.location.reload( true );
+    $('#save').removeAttr("disabled");
+  }
+
+  // data extraction support
+
+  function get_floats_from_string( s, sep ) {
+    var a = s.split(sep);
+    var i, n = a.length;
+    for( i = 0; i < n; ++i ) {
+      a[i] = parseFloat( a[i] );
+    }
+    return a;
+  }
+
+  // identification support
+
+  function identify (item) {
+    if( null != current_furniture ) {
+      current_furniture.animate({"fill-opacity": 1.0}, 500);
+    }
+    var jid = item.data("jid");
+    current_furniture = item;
+    item.animate({"fill-opacity": .5}, 500);
+    var doc = item.data("doc");
+    var s = doc.name + " " + doc.description;
+    $('#current_furniture').text( s );
+    var found = null;
+    for( var i = 0; i < all_furniture.length; ++i ) {
+      if( all_furniture[i].data("jid") == jid ) {
+        found = all_furniture[i];
+        break;
+      }
+    }
+    if( !found ) {
+      all_furniture.push( item );
+    }
+  }
+
+  function jonclick2 () {
+    identify( this );
+  }
+
+  // drag support
+
+  function dragger () {
+    identify( this );
+    var txy = this.transform().toString().substring(1).split(",");
+    console.log("dragger: "+txy);
+    this.ox = parseFloat(txy[0]);
+    this.oy = parseFloat(txy[1]);
+    this.animate({"fill-opacity": .5}, 500);
+    this.rotate( -this.data("angle") );
+  }
+
+  function move (dx, dy) {
+    dx = Math.round(xscale * dx);
+    dy = Math.round(yscale * dy);
+    var txy = "T" + (this.ox + dx).toString()
+      + "," + (this.oy + dy).toString();
+    this.transform("");
+    this.transform(txy);
+    paper.safari();
+  }
+
+  function up () {
+    this.animate({"fill-opacity": 1}, 500);
+    this.rotate( this.data("angle") );
+  }
+
+  // tooltip support
+
+  function tooltip_show(e) {
+
+    var offset = $('#editor').offset();
+    var x = e.pageX - offset.left;
+    var y = e.pageY - offset.top;
+    //var y2 = y - offset.top;
+    var id = e.currentTarget.raphaelid;
+    var item = paper.getById(id);
+
+    var x3 = x * xscale;
+    var y3 = y * yscale;
+    var x4 = x3 + xmin;
+    var y4 = y3 + ymin - 12 * yscale;
+
+    var doc = item.data("doc");
+    var s = doc.name + " " + doc.description;
+    tooltip
+      .attr("text", s)
+      .attr("x", x4 )
+      .attr("y", y4 );
+
+    //var w = tooltip.attr("width");
+    var bb = tooltip.getBBox();
+    var w = bb.width;
+    var w2 = w * 0.5;
+    var h2 = bb.height * 0.5;
+
+    tooltip_bg
+      .attr("width", w + 8 )
+      .attr("x", x4 - w2 - xscale )
+      .attr("y", y4 - h2 - yscale )
+      .attr("fill", "lightyellow")
+      .attr("opacity", 0.8)
+      .toFront()
+      .show();
+
+    tooltip
+      .toFront()
+      .show();
+  }
+
+  function tooltip_hide(e) {
+    tooltip.hide();
+    tooltip_bg.hide();
+  }
+
+  function raphael( roomdoc, furniture ) {
+
+    // canvas
+
+    var v = get_floats_from_string( roomdoc.viewBox, " " ); // min-x=left min-y=top width height
+    var w = 600;
+    var h = Math.round(((v[3] * w) / v[2]) + 0.5);
+    paper = Raphael("editor", w, h);
+    xmin = v[0];
+    ymin = v[1];
+    xscale = v[2] / w;
+    yscale = v[3] / h;
+
+    paper.setViewBox( xmin, ymin, v[2], v[3], false );
+
+    // tooltip support
+
+    var att = { fill: "white", stroke: "black", "stroke-width": 0.1 * xscale, "opacity" : 0.85 };
+
+    tooltip_bg = paper.rect( 0, 0, 55 * xscale, 17 * yscale, 2 * xscale ).attr(att).hide();
+    tooltip = paper.text( 0, 0, '' ).attr("font-size", 12 * yscale ).hide();
+
+    // room - outer loop anti-clockwise, inner clockwise
+
+    att = { fill: "gray", "fill-opacity": "0.2", stroke: "black", "stroke-width": 0.1 * xscale };
+
+    var room = paper
+      .path( roomdoc.loops )
+      .attr( att )
+      .data( "doc", roomdoc );
+
+    $(room.node)
+      //.hover( tooltip_show, tooltip_hide )
+      .mousemove( tooltip_show )
+      .mouseout( tooltip_hide );
+
+    // furniture
+
+    att = { fill: "green", stroke: "black", "stroke-width": 0.1 * xscale, class: "pointer" };
+
+    for( var i=0; i < furniture.length; ++i ) {
+      var f = furniture[i];
+      console.log(f.transform);
+      var trxy = f.transform.slice(1).split(/[,RT]/)
+      var angle = parseFloat(trxy[0]);
+      console.log(trxy[0]+","+trxy[1]+","+trxy[2]);
+
+      var item = paper.path( f.loop )
+        .transform("T"+trxy[1]+","+trxy[2])
+        .rotate( angle )
+        .click(jonclick2)
+        .data("angle", angle )
+        .data("jid", f._id)
+        .data("doc", f)
+        .attr(att)
+        .drag(move, dragger, up);
+
+      $(item.node)
+        //.hover( tooltip_show, tooltip_hide )
+        .mousemove( tooltip_show )
+        .mouseout( tooltip_hide );
+    }
+  };
+
+  // convert URL parameters to object
+
+  var url = this.location;
+
+  var paramdict = {};
+  var params = url.href.split("?");
+
+  if( 1 < params.length ) {
+    url = params[0];
+    params = params[1];
+    params = params.split("&");
+    for(var i = 0; i < params.length; ++i)
+    {
+      var kv = params[i].split("=");
+      paramdict[kv[0]] = kv[1];
+    }
+  }
+
+  // display main menu
+
+  var db = require('db').current();
+  var $ = require('jquery');
+  var furniture;
+  var symbol_count = 0;
+
+  if (paramdict.hasOwnProperty('roomid')){
+
+    //======================================================
+    // display the selected room and its furniture
+    //======================================================
+
+    var rid = paramdict['roomid'];
+    db.getDoc( rid,
+      function(err,resp) {
+        if (err) {
+          return alert(JSON.stringify(err));
+        }
+        var roomdoc = resp;
+        var lid = roomdoc.levelId;
+        db.getDoc( lid,
+          function(err,resp) {
+            if (err) {
+              return alert(JSON.stringify(err));
+            }
+            var leveldoc = resp;
+            var mid = leveldoc.modelId;
+            db.getDoc( mid,
+              function(err,resp) {
+                if (err) {
+                  return alert(JSON.stringify(err));
+                }
+                var modeldoc = resp;
+                var q = { key: JSON.stringify(rid) };
+                db.getView('roomedit', 'map_room_to_furniture', q,
+                  function (err, data) {
+                    if (err) {
+                      return alert(err);
+                    }
+                    var furniture=[];
+                    var symbol_ids = [];
+                    var n = data.rows.length;
+                    for (var i = 0; i < n; ++i) {
+                      var instdoc = data.rows[i].value;
+                      var fid = instdoc._id;
+                      console.log( 'doc id ' + fid + ' ' + instdoc.name );
+                      if( instdoc.roomId != rid ) {
+                        alert( 'room ids differ in furniture ' + instdoc._id
+                          + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
+                      }
+                      var sid = instdoc.symbolId;
+                      furniture.push(instdoc);
+                      symbol_ids.push( sid );
+                    }
+                    var q2 = { keys: JSON.stringify(symbol_ids) };
+                    db.getView('roomedit', 'symbols', q2,
+                      function (err, data) {
+                        if (err) {
+                          return alert(err);
+                        }
+                        var n2 = data.rows.length;
+                        var map_symbid_to_loop = {};
+                        for( var i = 0; i < n2; ++i ) {
+                          var symbdoc = data.rows[i].value;
+                          map_symbid_to_loop[symbdoc._id] = symbdoc.loop;
+                        }
+                        for( var i = 0; i < furniture.length; ++i ) {
+                          furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
+                        }
+                        var p = $('<p/>').appendTo('#content');
+                        p.append( $('<a/>').text('Refresh').attr('href', url + '?roomid=' + rid ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<a/>').text('Home').attr('href',url) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<a/>').text('Back').attr('href', url + '?levelid=' + lid ) );
+
+                        $('<p/>').text( 'Please pick and drag furniture '
+                          + 'and equipment around to select and move it, '
+                          + 'then click the buttons to rotate clockwise, '
+                          + 'counter-clockwise, refresh, and save.' )
+                          .appendTo('#content');
+
+                        var table = $('<table/>').appendTo('#content');
+                        table.append( '<tr><td>' + 'Model:'
+                          + '</td><td>' + modeldoc.name + '</td></tr>' );
+                        table.append( '<tr><td>' + 'Level:'
+                          + '</td><td>' + leveldoc.name + '</td></tr>' );
+                        table.append( '<tr><td>' + 'Room:'
+                          + '</td><td>' + roomdoc.name + '</td></tr>' );
+
+                        var p = $('<p/>').text( n.toString()
+                          + ' furniture and equipment item' + pluralSuffix( n )
+                          + ' in room ' ).appendTo('#content');
+                        p.append( $('<i/>').text( roomdoc.name ) );
+                        p.append( document.createTextNode( ' on level ' ) );
+                        p.append( $('<i/>').text( leveldoc.name ) );
+                        p.append( document.createTextNode( ' in model ' ) );
+                        p.append( $('<i/>').text( modeldoc.name ) );
+                        p.append( document.createTextNode( dotOrColon( n ) ) );
+
+                        var p = $('<p/>').appendTo('#content');
+
+                        p.append( $('<button/>').text('Rotate')
+                          .attr('onclick', 'rotate_current_cw()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Ccw')
+                          .attr('onclick', 'rotate_current_ccw()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Refresh')
+                          .attr('onclick', 'refresh()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Save')
+                          .attr('id', 'save')
+                          .attr('onclick', 'save_all()' ) );
+
+                        raphael( roomdoc, furniture );
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+  else if( paramdict.hasOwnProperty( 'levelid' ) ) {
+
+    //======================================================
+    // display a menu of all all rooms on selected level
+    //======================================================
+
+    var lid = paramdict['levelid'];
+    db.getDoc( lid,
+      function(err,resp) {
+        if (err) {
+          return alert(JSON.stringify(err));
+        }
+        var leveldoc = resp;
+        var mid = leveldoc.modelId;
+        db.getDoc( mid,
+          function(err,resp) {
+            if (err) {
+              return alert(JSON.stringify(err));
+            }
+            var modeldoc = resp;
+            db.getView('roomedit',
+              'map_level_to_room',
+              { key: JSON.stringify(lid) },
+
+              function (err, data) {
+                if (err) {
+                  return alert(err);
+                }
+                var n = data.rows.length;
+                for (var i = 0; i < n; ++i) {
+                  var doc = data.rows[i].value;
+                  if( doc.levelId != lid ) {
+                    alert( 'model ids differ: doc ' + doc.levelId + ", url " + lid );
+                  }
+                  var s = url + '?roomid=' + doc._id;
+                  $('<li/>')
+                    .append($('<a>')
+                    .attr('href',s)
+                    .text(doc.name))
+                    .appendTo('#navigatorlist');
+                }
+                var p = $('<p/>').appendTo('#content');
+                p.append( $('<a/>').text('Home').attr('href',url) );
+                p.append( document.createTextNode( three_spaces ) );
+                p.append( $('<a/>')
+                  .text('Back')
+                  .attr('href', url + '?modelid=' + mid ) );
+
+                $('<p/>')
+                  .text( 'Please select a room in the list below.' )
+                  .appendTo('#content');
+
+                var table = $('<table/>').appendTo('#content');
+                table.append( '<tr><td>' + 'Model:'
+                  + '</td><td>' + modeldoc.name + '</td></tr>' );
+                table.append( '<tr><td>' + 'Level:'
+                  + '</td><td>' + leveldoc.name + '</td></tr>' );
+
+                var p = $('<p/>').text( n.toString()
+                  + ' room' + pluralSuffix( n )
+                  + ' on level ' ).appendTo('#content');
+                p.append( $('<i/>').text( leveldoc.name ) );
+                p.append( document.createTextNode( ' in model ' ) );
+                p.append( $('<i/>').text( modeldoc.name ) );
+                p.append( document.createTextNode( dotOrColon( n ) ) );
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+  else if ( paramdict.hasOwnProperty( 'modelid' ) ) {
+
+    //======================================================
+    // display a menu of all levels in selected model
+    //======================================================
+
+    var mid = paramdict['modelid'];
+    db.getDoc( mid,
+      function(err,resp) {
+        if (err) {
+          return alert(JSON.stringify(err));
+        }
+        var modeldoc = resp;
+        db.getView('roomedit',
+          'map_model_to_level',
+          { key: JSON.stringify(mid) },
+
+          function (err, data) {
+            if (err) {
+              return alert(err);
+            }
+            //var count = 0;
+            var n = data.rows.length;
+            for (var i = 0; i < n; ++i) {
+              var doc = data.rows[i].value;
+              if( doc.modelId != mid ) {
+                alert( 'model ids differ: doc '
+                  + doc.modelId + ", url " + mid );
+              }
+              //++count;
+              var s = url + '?levelid=' + doc._id;
+              $('<li/>')
+                .append($('<a>').attr('href',s).text(doc.name))
+                .appendTo('#navigatorlist');
+            }
+            var p = $('<p/>').appendTo('#content');
+            p.append( $('<a/>').text('Home').attr('href',url) );
+            p.append( document.createTextNode( three_spaces ) );
+            p.append( $('<a/>').text('Back').attr('href',url) );
+
+            $('<p/>')
+              .text( 'Please select a level in the list below.' )
+              .appendTo('#content');
+
+            var table = $('<table/>').appendTo('#content');
+            table.append( '<tr><td>' + 'Model:'
+              + '</td><td>' + modeldoc.name + '</td></tr>' );
+
+            var prompt = n.toString() + ' level'
+              + pluralSuffix( n ) + ' in model ';
+
+            var p = $('<p/>').text( prompt ).appendTo('#content');
+            p.append( $('<i/>').text( modeldoc.name ) );
+            p.append( document.createTextNode( dotOrColon( n ) ) );
+          }
+        );
+      }
+    );
+  }
+  else {
+
+    //======================================================
+    // display a menu of all available models
+    //======================================================
+
+    db.getView('roomedit', 'models',
+      function (err, data) {
+        if (err) {
+          return alert(err);
+        }
+        var n = data.rows.length;
+        for (var i = 0; i < n; ++i) {
+          var doc = data.rows[i].key;
+          var s = url + '?modelid=' + doc._id;
+          $('<li/>').append($('<a>')
+            .attr('href',s)
+            .text(doc.name))
+          .appendTo('#navigatorlist');
+        }
+        var p = $('<p/>').appendTo('#content');
+        p.append( $('<a/>').text('Home').attr('href',url) );
+        p.append( document.createTextNode( three_spaces ) );
+        p.append( $('<a/>').text('Back').attr('href',url) );
+
+        $('<p/>')
+          .text( 'Please select a model in the list below.' )
+          .appendTo('#content');
+
+        var prompt = n.toString() + ' model'
+          + pluralSuffix( n ) + dotOrColon( n );
+
+        $('<p/>').text( prompt ).appendTo('#content');
+      }
+    );
+  }
+</script>
+</body>
+</html>
