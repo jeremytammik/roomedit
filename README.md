@@ -1,7 +1,7 @@
 roomedit
 ========
 
-CouchDB application for 2D cloud-based room editor.
+CouchDB application for a 2D cloud-based room editor.
 
 Display and edit 2D room, furniture and equipment layout.
 
