@@ -4,7 +4,7 @@
 </head>
 <body>
 
-<h1>Room Editor 2</h1>
+<h1>Room Editor</h1>
 
 <style>
 table{
@@ -532,7 +532,6 @@ button:hover{
             if (err) {
               return alert(err);
             }
-            //var count = 0;
             var n = data.rows.length;
             for (var i = 0; i < n; ++i) {
               var doc = data.rows[i].value;
@@ -540,7 +539,6 @@ button:hover{
                 alert( 'model ids differ: doc '
                   + doc.modelId + ", url " + mid );
               }
-              //++count;
               var s = url + '?levelid=' + doc._id;
               $('<li/>')
                 .append($('<a>').attr('href',s).text(doc.name))
