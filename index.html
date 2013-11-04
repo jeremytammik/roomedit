@@ -229,69 +229,78 @@ button:hover{
     tooltip_bg.hide();
   }
 
-  function raphael( roomdoc, furniture ) {
+function raphael( roomdoc, furniture ) {
 
-    // canvas
+  // canvas
 
-    var v = get_floats_from_string( roomdoc.viewBox, " " ); // min-x=left min-y=top width height
-    var w = 600;
-    var h = Math.round(((v[3] * w) / v[2]) + 0.5);
-    paper = Raphael("editor", w, h);
-    xmin = v[0];
-    ymin = v[1];
-    xscale = v[2] / w;
-    yscale = v[3] / h;
+  // min-x=left min-y=top width height
+  var v = get_floats_from_string( roomdoc.viewBox, " " );
+  var w = 600;
+  var h = Math.round(((v[3] * w) / v[2]) + 0.5);
+  paper = Raphael("editor", w, h);
+  xmin = v[0];
+  ymin = v[1];
+  xscale = v[2] / w;
+  yscale = v[3] / h;
 
-    paper.setViewBox( xmin, ymin, v[2], v[3], false );
+  paper.setViewBox( xmin, ymin, v[2], v[3], false );
 
-    // tooltip support
+  // tooltip support
 
-    var att = { fill: "white", stroke: "black", "stroke-width": 0.1 * xscale, "opacity" : 0.85 };
+  var att = { fill: "white", stroke: "black",
+    "stroke-width": 0.1 * xscale, "opacity" : 0.85 };
 
-    tooltip_bg = paper.rect( 0, 0, 55 * xscale, 17 * yscale, 2 * xscale ).attr(att).hide();
-    tooltip = paper.text( 0, 0, '' ).attr("font-size", 12 * yscale ).hide();
+  tooltip_bg = paper
+    .rect( 0, 0, 55 * xscale, 17 * yscale, 2 * xscale )
+    .attr(att).hide();
 
-    // room - outer loop anti-clockwise, inner clockwise
+  tooltip = paper
+    .text( 0, 0, '' ).attr("font-size", 12 * yscale )
+    .hide();
 
-    att = { fill: "gray", "fill-opacity": "0.2", stroke: "black", "stroke-width": 0.1 * xscale };
+  // room - outer loop anti-clockwise, inner clockwise
 
-    var room = paper
-      .path( roomdoc.loops )
-      .attr( att )
-      .data( "doc", roomdoc );
+  att = { fill: "gray", "fill-opacity": "0.2",
+    stroke: "black", "stroke-width": 0.1 * xscale };
 
-    $(room.node)
+  var room = paper
+    .path( roomdoc.loops )
+    .attr( att )
+    .data( "doc", roomdoc );
+
+  $(room.node)
+    //.hover( tooltip_show, tooltip_hide )
+    .mousemove( tooltip_show )
+    .mouseout( tooltip_hide );
+
+  // furniture
+
+  att = { fill: "green", stroke: "black",
+    "stroke-width": 0.1 * xscale, class: "pointer" };
+
+  for( var i=0; i < furniture.length; ++i ) {
+    var f = furniture[i];
+    console.log(f.transform);
+    var trxy = f.transform.slice(1).split(/[,RT]/)
+    var angle = parseFloat(trxy[0]);
+    console.log(trxy[0]+","+trxy[1]+","+trxy[2]);
+
+    var item = paper.path( f.loop )
+      .transform("T"+trxy[1]+","+trxy[2])
+      .rotate( angle )
+      .click(jonclick2)
+      .data("angle", angle )
+      .data("jid", f._id)
+      .data("doc", f)
+      .attr(att)
+      .drag(move, dragger, up);
+
+    $(item.node)
       //.hover( tooltip_show, tooltip_hide )
       .mousemove( tooltip_show )
       .mouseout( tooltip_hide );
-
-    // furniture
-
-    att = { fill: "green", stroke: "black", "stroke-width": 0.1 * xscale, class: "pointer" };
-
-    for( var i=0; i < furniture.length; ++i ) {
-      var f = furniture[i];
-      console.log(f.transform);
-      var trxy = f.transform.slice(1).split(/[,RT]/)
-      var angle = parseFloat(trxy[0]);
-      console.log(trxy[0]+","+trxy[1]+","+trxy[2]);
-
-      var item = paper.path( f.loop )
-        .transform("T"+trxy[1]+","+trxy[2])
-        .rotate( angle )
-        .click(jonclick2)
-        .data("angle", angle )
-        .data("jid", f._id)
-        .data("doc", f)
-        .attr(att)
-        .drag(move, dragger, up);
-
-      $(item.node)
-        //.hover( tooltip_show, tooltip_hide )
-        .mousemove( tooltip_show )
-        .mouseout( tooltip_hide );
-    }
-  };
+  }
+};
 
   // convert URL parameters to object
 
@@ -382,11 +391,13 @@ button:hover{
                           furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
                         }
                         var p = $('<p/>').appendTo('#content');
-                        p.append( $('<a/>').text('Refresh').attr('href', url + '?roomid=' + rid ) );
+                        p.append( $('<a/>').text('Refresh')
+                                 .attr('href', url + '?roomid=' + rid ) );
                         p.append( document.createTextNode( three_spaces ) );
                         p.append( $('<a/>').text('Home').attr('href',url) );
                         p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<a/>').text('Back').attr('href', url + '?levelid=' + lid ) );
+                        p.append( $('<a/>').text('Back')
+                                 .attr('href', url + '?levelid=' + lid ) );
 
                         $('<p/>').text( 'Please pick and drag furniture '
                           + 'and equipment around to select and move it, '
@@ -471,7 +482,8 @@ button:hover{
                 for (var i = 0; i < n; ++i) {
                   var doc = data.rows[i].value;
                   if( doc.levelId != lid ) {
-                    alert( 'model ids differ: doc ' + doc.levelId + ", url " + lid );
+                    alert( 'model ids differ: doc ' + doc.levelId
+                          + ", url " + lid );
                   }
                   var s = url + '?roomid=' + doc._id;
                   $('<li/>')
