@@ -1,0 +1,15 @@
+in couchdb, query the url:
+
+http://localhost:5984/roomedit/_all_docs?include_docs=true
+
+copy the result.
+
+remove some stuff at beginning and end of file.
+
+search for regex:
+
+^.*\"doc\"\:(.*\})\},$
+
+replace with:
+
+\1,
