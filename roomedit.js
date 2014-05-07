@@ -8,6 +8,10 @@ function dotOrColon( n ) {
   return 0 == n ? "." : ":";
 }
 
+function capitalise(s) {
+  return s[0].toUpperCase() + s.slice(1);
+}
+
 // split url parameters into a dictionary
 
 function get_url_paramdict( params ) {
@@ -37,6 +41,15 @@ function rotate_current_cw () {
 
 function rotate_current_ccw () {
   rotate_item( current_furniture, -5 );
+}
+
+function edit_properties_current(url) {
+  // http://blog.raventools.com/create-a-modal-dialog-using-css-and-javascript/
+  // http://stackoverflow.com/questions/16778336/modal-dialog-without-jquery
+  if( null != current_furniture ) {
+    var id = current_furniture.data("jid");
+    window.location.href = url + '?furnitureid=' + id;
+  }
 }
 
 // save new furniture positions
@@ -201,6 +214,7 @@ function raphael( roomdoc, furniture ) {
   var v = get_floats_from_string( roomdoc.viewBox, " " );
   var w = 600;
   var h = Math.round(((v[3] * w) / v[2]) + 0.5);
+
   paper = Raphael("editor", w, h);
   xmin = v[0];
   ymin = v[1];
@@ -263,5 +277,6 @@ function raphael( roomdoc, furniture ) {
       //.hover( tooltip_show, tooltip_hide )
       .mousemove( tooltip_show )
       .mouseout( tooltip_hide );
+
   }
 };

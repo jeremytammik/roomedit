@@ -23,6 +23,11 @@ table, th, td{
 button:hover{
   cursor: pointer;
 }
+
+.disable {
+  opacity : .35;
+  background-color:lightgray;
+}
 </style>
 
 <div id="content"></div>
@@ -35,7 +40,6 @@ button:hover{
 
 <script type="text/javascript" src="modules.js"></script>
 <script type="text/javascript" src="raphael-min-jt.js"></script>
-<script type="text/javascript" src="raphael.free_transform.js"></script>
 <script type="text/javascript" src="roomedit.js"></script>
 <script type="text/javascript">
 
@@ -71,7 +75,68 @@ button:hover{
   var furniture;
   var symbol_count = 0;
 
-  if (paramdict.hasOwnProperty('roomid')){
+  if (paramdict.hasOwnProperty('furnitureid')){
+    var fid = paramdict['furnitureid'];
+    db.getDoc( fid,
+      function(err,resp) {
+        if (err) {
+          return alert(JSON.stringify(err));
+        }
+        var furnituredoc = resp;
+        var rid = furnituredoc.roomId;
+        var a = furnituredoc.properties;
+
+        var p = $('<p/>').appendTo('#content');
+        p.append( $('<a/>').text('Home').attr('href',url) );
+        p.append( document.createTextNode( three_spaces ) );
+        p.append( $('<a/>')
+          .text('Back')
+          .attr('href', url + '?roomid=' + rid ) );
+
+        $('<p/>').text(
+          'Element properties of '
+          + furnituredoc.name + ':' )
+        .appendTo('#content');
+
+        var keys = [];
+        for (var key in a) {
+          if (a.hasOwnProperty(key)) {
+            keys.push(key);
+          }
+        }
+        keys.sort();
+
+        var form = $('<form/>').appendTo('#content');
+        var table = $('<table/>').appendTo(form);
+        var n = keys.length;
+        for( var i=0; i<n; ++i ) {
+          var key = keys[i];
+          var val = a[key];
+          k = capitalise(key);
+          var readonly = ('r' == val[0]);
+          v = val.slice(2);
+          table.append( '<tr><td>' + k
+            + ':</td><td><input type="text" name="' + key
+            + '" value="' + v + '"'
+            + (readonly ? ' readonly class="disable"' : '')
+            + '></td></tr>' );
+        }
+        form.append($('<br/>'));
+
+        form.append($('<input/>')
+          .attr( 'type', 'submit')
+          .attr( 'value', 'Submit'));
+
+        form.append( document
+          .createTextNode( three_spaces ) );
+
+        form.append($('<input/>')
+          .attr( 'type', 'button')
+          .attr( 'value', 'Cancel'));
+      }
+    );
+  }
+  else if (paramdict.hasOwnProperty('roomid')){
 
     //======================================================
     // display the selected room and its furniture
@@ -169,6 +234,9 @@ button:hover{
 
                         var p = $('<p/>').appendTo('#content');
 
+                        p.append( $('<button/>').text('Properties')
+                          .attr('onclick', 'edit_properties_current(url)' ) );
+                        p.append( document.createTextNode( three_spaces ) );
                         p.append( $('<button/>').text('Rotate')
                           .attr('onclick', 'rotate_current_cw()' ) );
                         p.append( document.createTextNode( three_spaces ) );
