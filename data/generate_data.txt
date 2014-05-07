@@ -6,6 +6,8 @@ copy the result.
 
 remove some stuff at beginning and end of file.
 
+add a terminating comma to the last row.
+
 search for regex:
 
 ^.*\"doc\"\:(.*\})\},$
@@ -13,3 +15,12 @@ search for regex:
 replace with:
 
 \1,
+
+remove the terminating comma from the last row.
+
+delete _design/roomedit.
+
+kanso install
+couchdb
+kanso push http://localhost:5984/roomedit
+kanso upload data/2014-05-07.json http://localhost:5984/roomedit

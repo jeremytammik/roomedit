@@ -1,0 +1,209 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+
+<h1>Sheet Editor</h1>
+
+<style>
+table{
+  border-collapse: collapse;
+}
+
+table, th, td{
+  border: 0px solid black;
+  padding: 5px;
+}
+
+.pointer{
+  cursor: pointer;
+}
+
+button:hover{
+  cursor: pointer;
+}
+</style>
+
+<div id="content"></div>
+
+<ul id="navigatorlist"></ul>
+
+<div id="editor"></div>
+
+<p id="current_furniture"></p>
+
+<script type="text/javascript" src="modules.js"></script>
+<script type="text/javascript" src="raphael-min-jt.js"></script>
+<script type="text/javascript" src="raphael.free_transform.js"></script>
+<script type="text/javascript" src="roomedit.js"></script>
+<script type="text/javascript">
+
+  // convert URL parameters to dictionary
+
+  var url = this.location;
+
+  //url = url.replace( "index2.html", "index.html" );
+
+  var paramdict = {};
+  var params = url.href.split("?");
+
+  if( 1 < params.length ) {
+    url = params[0];
+    paramdict = get_url_paramdict( params[1] );
+  }
+
+  // display main menu
+
+  var db = require('db').current();
+  var $ = require('jquery');
+
+  if (paramdict.hasOwnProperty('sheetid')){
+
+    //============================================================
+    // display the selected sheet, its views and the BIM elements
+    //============================================================
+
+    var sid = paramdict['sheetid'];
+    db.getDoc( sid,
+      function(err,resp) {
+        if (err) {
+          return alert(JSON.stringify(err));
+        }
+        var sheetdoc = resp;
+        var mid = sheetdoc.modelId;
+        db.getDoc( mid,
+          function(err,resp) {
+            if (err) {
+              return alert(JSON.stringify(err));
+            }
+            var modeldoc = resp;
+            var q = { key: JSON.stringify(sid) };
+            db.getView('roomedit', 'map_sheet_to_view', q,
+              function (err, data) {
+                if (err) {
+                  return alert(err);
+                }
+                var views=[];
+                var view_ids=[];
+                var n = data.rows.length;
+                for (var i = 0; i < n; ++i) {
+                  var viewdoc = data.rows[i].value;
+                  var vid = viewdoc._id;
+                  console.log( 'doc id ' + vid + ' ' + viewdoc.name );
+                  if( viewdoc.sheetId != sid ) {
+                    alert( 'sheet ids differ in view ' + viewdoc._id
+                      + ':\ndoc ' + viewdoc.sheetId + "\nurl " + sid );
+                  }
+                  views.push(viewdoc);
+                  view_ids.push(viewdoc._id);
+                }
+                var q2 = { keys: JSON.stringify(view_ids) };
+                db.getView('roomedit', 'map_view_to_bimel', q2,
+                  function (err, data) {
+                    if (err) {
+                      return alert(err);
+                    }
+                    var n2 = data.rows.length;
+                    var parts=[];
+                    var insts=[];
+                    var symbol_ids = [];
+                    for (var i = 0; i < n2; ++i) {
+                      var bimeldoc = data.rows[i].value;
+                      var bid = bimeldoc._id;
+                      console.log( 'doc id ' + bid + ' ' + bimeldoc.name );
+                      var t = bimeldoc.type;
+                      if( 'part' == t ) {
+                        parts.push( bimeldoc);
+                      }
+                      else {
+                        insts.push(bimeldoc);
+                        symbol_ids.push( bimeldoc.symbolId );
+                      }
+                    }
+                    var q3 = { keys: JSON.stringify(symbol_ids) };
+                    db.getView('roomedit', 'symbols', q3,
+                      function (err, data) {
+                        if (err) {
+                          return alert(err);
+                        }
+                        var n3 = data.rows.length;
+                        var map_symbid_to_loop = {};
+                        for( var i = 0; i < n3; ++i ) {
+                          var symbdoc = data.rows[i].value;
+                          map_symbid_to_loop[symbdoc._id] = symbdoc.loop;
+                        }
+                        for( var i = 0; i < insts.length; ++i ) {
+                          insts[i].loop = map_symbid_to_loop[furniture[i].symbolId];
+                        }
+                        var p = $('<p/>').appendTo('#content');
+                        p.append( $('<a/>').text('Refresh')
+                                 .attr('href', url + '?roomid=' + rid ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<a/>').text('Home').attr('href',url) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<a/>').text('Back')
+                                 .attr('href', url + '?levelid=' + lid ) );
+
+                        $('<p/>').text( 'Please pick and drag BIM elements '
+                          + 'around to select and move them and click the '
+                          + 'button to refresh and save.' )
+                          .appendTo('#content');
+
+                        var table = $('<table/>').appendTo('#content');
+                        table.append( '<tr><td>' + 'Model:'
+                          + '</td><td>' + modeldoc.name + '</td></tr>' );
+                        table.append( '<tr><td>' + 'Sheet:'
+                          + '</td><td>' + sheetdoc.name + '</td></tr>' );
+                        for( var i = 0; i < views.length; ++i ) {
+                          table.append( '<tr><td>' + 'View:'
+                            + '</td><td>' + views[i].name + '</td></tr>' );
+                        }
+
+
+
+                        return;
+
+                        var p = $('<p/>').text( n.toString()
+                          + ' BIM element' + pluralSuffix( n )
+                          + ' in view ' ).appendTo('#content');
+                        p.append( $('<i/>').text( roomdoc.name ) );
+                        p.append( document.createTextNode( ' on level ' ) );
+                        p.append( $('<i/>').text( leveldoc.name ) );
+                        p.append( document.createTextNode( ' in model ' ) );
+                        p.append( $('<i/>').text( modeldoc.name ) );
+                        p.append( document.createTextNode( dotOrColon( n ) ) );
+
+                        var p = $('<p/>').appendTo('#content');
+
+                        p.append( $('<button/>').text('Rotate')
+                          .attr('onclick', 'rotate_current_cw()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Ccw')
+                          .attr('onclick', 'rotate_current_ccw()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Refresh')
+                          .attr('onclick', 'refresh()' ) );
+                        p.append( document.createTextNode( three_spaces ) );
+                        p.append( $('<button/>').text('Save')
+                          .attr('id', 'save')
+                          .attr('onclick', 'save_all()' ) );
+
+                        raphael( roomdoc, furniture );
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
+  }
+  else {
+    location.href = url.replace('index2.html', 'index.html');
+  }
+</script>
+</body>
+</html>
