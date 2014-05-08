@@ -46,6 +46,7 @@ button:hover{
   var three_spaces = ' \u00a0 '; // unicode &nbsp;
 
   var current_furniture = null;
+  var current_furniture_doc = null;
   var all_furniture = [];
 
   var xmin;
@@ -73,7 +74,6 @@ button:hover{
   var db = require('db').current();
   var $ = require('jquery');
   var furniture;
-  var symbol_count = 0;
 
   if (paramdict.hasOwnProperty('furnitureid')){
     var fid = paramdict['furnitureid'];
@@ -82,9 +82,9 @@ button:hover{
         if (err) {
           return alert(JSON.stringify(err));
         }
-        var furnituredoc = resp;
-        var rid = furnituredoc.roomId;
-        var a = furnituredoc.properties;
+        current_furniture_doc = resp;
+        var rid = current_furniture_doc.roomId;
+        var a = current_furniture_doc.properties;
 
         var p = $('<p/>').appendTo('#content');
         p.append( $('<a/>').text('Home').attr('href',url) );
@@ -93,46 +93,51 @@ button:hover{
           .text('Back')
           .attr('href', url + '?roomid=' + rid ) );
 
-        $('<p/>').text(
+        p = p.append($('<p/>').text(
           'Element properties of '
-          + furnituredoc.name + ':' )
-        .appendTo('#content');
+          + current_furniture_doc.name + ':' ));
 
-        var keys = [];
-        for (var key in a) {
-          if (a.hasOwnProperty(key)) {
-            keys.push(key);
-          }
-        }
+        var keys = jt_get_keys( a );
         keys.sort();
 
-        var form = $('<form/>').appendTo('#content');
-        var table = $('<table/>').appendTo(form);
+        //var form = $('<form/>')
+        //  //.attr( 'onsubmit', 'alert("onsubmit")') // 'save_properties(furnituredoc)')
+        //  .appendTo('#content');
+
+        var table = p.append($('<table/>'));
         var n = keys.length;
         for( var i=0; i<n; ++i ) {
           var key = keys[i];
           var val = a[key];
-          k = capitalise(key);
+          var key_label = capitalise(key);
+          var key_id = unspace(key);
           var readonly = ('r' == val[0]);
           v = val.slice(2);
-          table.append( '<tr><td>' + k
-            + ':</td><td><input type="text" name="' + key
+          table.append( '<tr><td>' + key_label
+            + ':</td><td><input type="text" id="' + key_id
             + '" value="' + v + '"'
             + (readonly ? ' readonly class="disable"' : '')
             + '></td></tr>' );
         }
-        form.append($('<br/>'));
+        table.append($('<br/>'));
 
-        form.append($('<input/>')
-          .attr( 'type', 'submit')
-          .attr( 'value', 'Submit'));
+        //var next_url = url + '?roomid=' + rid;
 
-        form.append( document
+        table.append($('<input/>')
+          .attr( 'type', 'button')
+          .attr( 'value', 'OK')
+          .attr( 'onclick',
+            'save_properties(current_furniture_doc,true)'));
+
+        table.append( document
           .createTextNode( three_spaces ) );
 
-        form.append($('<input/>')
+        table.append($('<input/>')
           .attr( 'type', 'button')
-          .attr( 'value', 'Cancel'));
+          .attr( 'value', 'Cancel')
+          .attr( 'onclick',
+            'save_properties(current_furniture_doc,false)'));
+
       }
     );
   }

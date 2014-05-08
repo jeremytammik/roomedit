@@ -12,6 +12,21 @@ function capitalise(s) {
   return s[0].toUpperCase() + s.slice(1);
 }
 
+function unspace(s) {
+  return s.replace(/ /g,'_');
+}
+
+// return the proper keys of the given dictionary d:
+function jt_get_keys(d) {
+  var keys = [];
+  for (var key in d) {
+    if (d.hasOwnProperty(key)) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
 // split url parameters into a dictionary
 
 function get_url_paramdict( params ) {
@@ -44,19 +59,59 @@ function rotate_current_ccw () {
 }
 
 function edit_properties_current(url) {
-  // http://blog.raventools.com/create-a-modal-dialog-using-css-and-javascript/
-  // http://stackoverflow.com/questions/16778336/modal-dialog-without-jquery
   if( null != current_furniture ) {
     var id = current_furniture.data("jid");
     window.location.href = url + '?furnitureid=' + id;
   }
 }
 
+function save_properties(fdoc,do_save) {
+  if(do_save) {
+    var a = fdoc.properties;
+    var keys = jt_get_keys( a );
+    var n = keys.length;
+    var modified_count = 0;
+    for( var i=0; i<n; ++i ) {
+      var key = keys[i];
+      var val = a[key];
+      var key_id = unspace(key);
+      if( 'w' == val[0] ) {
+        var w = $('#' + key_id);
+        var val2 = w.val(); // equals w.attr('value');
+        if( val2 != val.slice(2) ) {
+          ++modified_count;
+          fdoc.properties[key] = 'w ' + val2;
+        }
+      }
+    }
+    if( 0 < modified_count ) {
+      save_doc(fdoc);
+    }
+  }
+  var rid = fdoc.roomId;
+  window.location.href = url + '?roomid=' + rid;
+}
+
+// save a furniture document
+
+function save_doc(fdoc) {
+  if( fdoc.hasOwnProperty('loop') ) {
+    delete fdoc.loop;
+  }
+  db.saveDoc( fdoc,
+    function (err, data) {
+      if (err) {
+        return alert(err);
+      }
+    }
+  );
+}
+
 // save new furniture positions
 
 function save(a) {
 
-  var db = require('db').current();
+  //var db = require('db').current();
 
   $('#save').attr("disabled", "disabled");
 
@@ -69,17 +124,10 @@ function save(a) {
       + 'T' + txy[0] + "," + txy[1];
 
     var fdoc = f.data("doc");
-    if( fdoc.hasOwnProperty('loop') ) {
-      delete fdoc.loop;
-    }
+
     fdoc.transform = trxy;
-    db.saveDoc( fdoc,
-      function (err, data) {
-        if (err) {
-          return alert(err);
-        }
-      }
-    );
+
+    save_doc( fdoc );
   }
 }
 
@@ -103,18 +151,10 @@ function get_floats_from_string( s, sep ) {
   return a;
 }
 
-// identification support
+// add to modified furniture item list
 
-function identify (item) {
-  if( null != current_furniture ) {
-    current_furniture.animate({"fill-opacity": 1.0}, 500);
-  }
+function add_to_modified_furniture(item) {
   var jid = item.data("jid");
-  current_furniture = item;
-  item.animate({"fill-opacity": .5}, 500);
-  var doc = item.data("doc");
-  var s = doc.name + " " + doc.description;
-  $('#current_furniture').text( s );
   var found = null;
   for( var i = 0; i < all_furniture.length; ++i ) {
     if( all_furniture[i].data("jid") == jid ) {
@@ -125,6 +165,20 @@ function identify (item) {
   if( !found ) {
     all_furniture.push( item );
   }
+}
+
+// identification support
+
+function identify (item) {
+  if( null != current_furniture ) {
+    current_furniture.animate({"fill-opacity": 1.0}, 500);
+  }
+  current_furniture = item;
+  item.animate({"fill-opacity": .5}, 500);
+  var doc = item.data("doc");
+  var s = doc.name + " " + doc.description;
+  $('#current_furniture').text( s );
+  add_to_modified_furniture( item );
 }
 
 function jonclick2 () {
