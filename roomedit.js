@@ -125,8 +125,6 @@ function save_properties(fdoc,do_save) {
 
 function save(a) {
 
-  //var db = require('db').current();
-
   $('#save').attr("disabled", "disabled");
 
   for( var i = 0; i < a.length; ++i ) {

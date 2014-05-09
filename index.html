@@ -45,6 +45,10 @@ button:hover{
 
   var three_spaces = ' \u00a0 '; // unicode &nbsp;
 
+  var db = require('db').current();
+  var $ = require('jquery');
+
+  var furniture;
   var current_furniture = null;
   var current_furniture_doc = null;
   var all_furniture = [];
@@ -68,10 +72,6 @@ button:hover{
     url = params[0];
     paramdict = get_url_paramdict( params[1] );
   }
-
-  var db = require('db').current();
-  var $ = require('jquery');
-  var furniture;
 
   if (paramdict.hasOwnProperty('furnitureid')){
 
