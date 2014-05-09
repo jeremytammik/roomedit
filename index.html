@@ -69,13 +69,16 @@ button:hover{
     paramdict = get_url_paramdict( params[1] );
   }
 
-  // display main menu
-
   var db = require('db').current();
   var $ = require('jquery');
   var furniture;
 
   if (paramdict.hasOwnProperty('furnitureid')){
+
+    //======================================================
+    // display and edit the selected element properties
+    //======================================================
+
     var fid = paramdict['furnitureid'];
     db.getDoc( fid,
       function(err,resp) {
@@ -92,8 +95,6 @@ button:hover{
         p.append( $('<a/>')
           .text('Back')
           .attr('href', url + '?roomid=' + rid ) );
-
-        //var next_url = url + '?roomid=' + rid;
 
         p = p.append($('<p/>').text(
           'Element properties of '
@@ -133,7 +134,6 @@ button:hover{
           .attr( 'value', 'Cancel')
           .attr( 'onclick',
             'save_properties(current_furniture_doc,false)'));
-
       }
     );
   }
@@ -203,21 +203,6 @@ button:hover{
                         var url_model = url + '?modelid=' + mid;
                         var url_level = url + '?levelid=' + lid;
                         var url_room = url + '?roomid=' + rid;
-
-                        //var p = $('<p/>').appendTo('#content');
-                        //p.append( $('<a/>').text('Refresh').attr('href', url_room ) );
-                        //p.append( document.createTextNode( three_spaces ) );
-                        //p.append( $('<a/>').text('Home').attr('href',url) );
-                        //p.append( document.createTextNode( three_spaces ) );
-                        //p.append( $('<a/>').text('Back').attr('href', url_level ) );
-
-                        //var table = $('<table/>').appendTo('#content');
-                        //table.append( '<tr><td>' + 'Model:'
-                        //  + '</td><td>' + modeldoc.name + '</td></tr>' );
-                        //table.append( '<tr><td>' + 'Level:'
-                        //  + '</td><td>' + leveldoc.name + '</td></tr>' );
-                        //table.append( '<tr><td>' + 'Room:'
-                        //  + '</td><td>' + roomdoc.name + '</td></tr>' );
 
                         $('#content').append( $('<table/>')
                           .append( $('<tr>')
@@ -341,13 +326,6 @@ button:hover{
                       .append( $('<a>')
                         .text(leveldoc.name)
                         .attr('href',url_level) ))));
-
-                //var p = $('<p/>').appendTo('#content');
-                //p.append( $('<a/>').text('Home').attr('href',url) );
-                //p.append( document.createTextNode( three_spaces ) );
-                //p.append( $('<a/>')
-                //  .text('Back')
-                //  .attr('href', url + '?modelid=' + mid ) );
 
                 var n = data.rows.length;
 

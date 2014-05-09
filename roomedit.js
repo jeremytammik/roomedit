@@ -72,9 +72,6 @@ function edit_properties_current(url) {
   }
 }
 
-// save a furniture document
-
-
 // save modified element properties
 
 function save_properties(fdoc,do_save) {
@@ -107,7 +104,6 @@ function save_properties(fdoc,do_save) {
           if (err) {
             console.log(err);
             alert(JSON.stringify(err));
-            //alert(err);
           }
           window.location.href = url_room;
         }
@@ -290,7 +286,7 @@ function tooltip_hide(e) {
 
 function raphael( roomdoc, furniture ) {
 
-  // canvas
+  // set up canvas
 
   // min-x=left min-y=top width height
   var v = get_floats_from_string( roomdoc.viewBox, " " );
@@ -359,6 +355,5 @@ function raphael( roomdoc, furniture ) {
       //.hover( tooltip_show, tooltip_hide )
       .mousemove( tooltip_show )
       .mouseout( tooltip_hide );
-
   }
 };
