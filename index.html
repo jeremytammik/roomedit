@@ -80,7 +80,7 @@ button:hover{
     db.getDoc( fid,
       function(err,resp) {
         if (err) {
-          return alert(JSON.stringify(err));
+          alert(JSON.stringify(err));
         }
         current_furniture_doc = resp;
         var rid = current_furniture_doc.roomId;
@@ -93,16 +93,14 @@ button:hover{
           .text('Back')
           .attr('href', url + '?roomid=' + rid ) );
 
+        //var next_url = url + '?roomid=' + rid;
+
         p = p.append($('<p/>').text(
           'Element properties of '
           + current_furniture_doc.name + ':' ));
 
         var keys = jt_get_keys( a );
         keys.sort();
-
-        //var form = $('<form/>')
-        //  //.attr( 'onsubmit', 'alert("onsubmit")') // 'save_properties(furnituredoc)')
-        //  .appendTo('#content');
 
         var table = p.append($('<table/>'));
         var n = keys.length;
@@ -120,8 +118,6 @@ button:hover{
             + '></td></tr>' );
         }
         table.append($('<br/>'));
-
-        //var next_url = url + '?roomid=' + rid;
 
         table.append($('<input/>')
           .attr( 'type', 'button')
@@ -151,28 +147,28 @@ button:hover{
     db.getDoc( rid,
       function(err,resp) {
         if (err) {
-          return alert(JSON.stringify(err));
+          alert(JSON.stringify(err));
         }
         var roomdoc = resp;
         var lid = roomdoc.levelId;
         db.getDoc( lid,
           function(err,resp) {
             if (err) {
-              return alert(JSON.stringify(err));
+              alert(JSON.stringify(err));
             }
             var leveldoc = resp;
             var mid = leveldoc.modelId;
             db.getDoc( mid,
               function(err,resp) {
                 if (err) {
-                  return alert(JSON.stringify(err));
+                  alert(JSON.stringify(err));
                 }
                 var modeldoc = resp;
                 var q = { key: JSON.stringify(rid) };
                 db.getView('roomedit', 'map_room_to_furniture', q,
                   function (err, data) {
                     if (err) {
-                      return alert(err);
+                      alert(JSON.stringify(err));
                     }
                     var furniture=[];
                     var symbol_ids = [];
@@ -193,7 +189,7 @@ button:hover{
                     db.getView('roomedit', 'symbols', q2,
                       function (err, data) {
                         if (err) {
-                          return alert(err);
+                          alert(JSON.stringify(err));
                         }
                         var n2 = data.rows.length;
                         var map_symbid_to_loop = {};
@@ -204,38 +200,65 @@ button:hover{
                         for( var i = 0; i < furniture.length; ++i ) {
                           furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
                         }
-                        var p = $('<p/>').appendTo('#content');
-                        p.append( $('<a/>').text('Refresh')
-                                 .attr('href', url + '?roomid=' + rid ) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<a/>').text('Home').attr('href',url) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<a/>').text('Back')
-                                 .attr('href', url + '?levelid=' + lid ) );
+                        var url_model = url + '?modelid=' + mid;
+                        var url_level = url + '?levelid=' + lid;
+                        var url_room = url + '?roomid=' + rid;
 
-                        $('<p/>').text( 'Please pick and drag furniture '
-                          + 'and equipment around to select and move it, '
-                          + 'then click the buttons to rotate clockwise, '
-                          + 'counter-clockwise, refresh, and save.' )
-                          .appendTo('#content');
+                        //var p = $('<p/>').appendTo('#content');
+                        //p.append( $('<a/>').text('Refresh').attr('href', url_room ) );
+                        //p.append( document.createTextNode( three_spaces ) );
+                        //p.append( $('<a/>').text('Home').attr('href',url) );
+                        //p.append( document.createTextNode( three_spaces ) );
+                        //p.append( $('<a/>').text('Back').attr('href', url_level ) );
 
-                        var table = $('<table/>').appendTo('#content');
-                        table.append( '<tr><td>' + 'Model:'
-                          + '</td><td>' + modeldoc.name + '</td></tr>' );
-                        table.append( '<tr><td>' + 'Level:'
-                          + '</td><td>' + leveldoc.name + '</td></tr>' );
-                        table.append( '<tr><td>' + 'Room:'
-                          + '</td><td>' + roomdoc.name + '</td></tr>' );
+                        //var table = $('<table/>').appendTo('#content');
+                        //table.append( '<tr><td>' + 'Model:'
+                        //  + '</td><td>' + modeldoc.name + '</td></tr>' );
+                        //table.append( '<tr><td>' + 'Level:'
+                        //  + '</td><td>' + leveldoc.name + '</td></tr>' );
+                        //table.append( '<tr><td>' + 'Room:'
+                        //  + '</td><td>' + roomdoc.name + '</td></tr>' );
 
-                        var p = $('<p/>').text( n.toString()
-                          + ' furniture and equipment item' + pluralSuffix( n )
-                          + ' in room ' ).appendTo('#content');
-                        p.append( $('<i/>').text( roomdoc.name ) );
-                        p.append( document.createTextNode( ' on level ' ) );
-                        p.append( $('<i/>').text( leveldoc.name ) );
-                        p.append( document.createTextNode( ' in model ' ) );
-                        p.append( $('<i/>').text( modeldoc.name ) );
-                        p.append( document.createTextNode( dotOrColon( n ) ) );
+                        $('#content').append( $('<table/>')
+                          .append( $('<tr>')
+                            .append( $('<td>').text( 'Start:' ) )
+                            .append( $('<td>')
+                              .append( $('<a>')
+                                .text('Home')
+                                .attr('href',url) )))
+                          .append( $('<tr>')
+                            .append( $('<td>').text( 'Model:' ) )
+                            .append( $('<td>')
+                              .append( $('<a>')
+                                .text(modeldoc.name)
+                                .attr('href',url_model) )))
+                          .append( $('<tr>')
+                            .append( $('<td>').text( 'Level:' ) )
+                            .append( $('<td>')
+                              .append( $('<a>')
+                                .text(leveldoc.name)
+                                .attr('href',url_level) )))
+                          .append( $('<tr>')
+                            .append( $('<td>').text( 'Room:' ) )
+                            .append( $('<td>')
+                              .append( $('<a>')
+                                .text(roomdoc.name)
+                                .attr('href',url_room) ))))
+                          .append($('<p/>')
+                            .text( n.toString()
+                              + ' furniture and equipment item' + pluralSuffix( n )
+                              + ' in room ' )
+                            .append( $('<i/>').text( roomdoc.name ) )
+                            .append( document.createTextNode( ' on level ' ) )
+                            .append( $('<i/>').text( leveldoc.name ) )
+                            .append( document.createTextNode( ' in model ' ) )
+                            .append( $('<i/>').text( modeldoc.name ) )
+                            .append( document.createTextNode( '.' ) ) )
+                          .append($('<p/>')
+                            .text( 'Please pick and drag furniture '
+                            + 'and equipment around to select and move it, '
+                            + 'then click the buttons to rotate clockwise, '
+                            + 'counter-clockwise, refresh, and save.' ));
 
                         var p = $('<p/>').appendTo('#content');
 
@@ -277,14 +300,14 @@ button:hover{
     db.getDoc( lid,
       function(err,resp) {
         if (err) {
-          return alert(JSON.stringify(err));
+          alert(JSON.stringify(err));
         }
         var leveldoc = resp;
         var mid = leveldoc.modelId;
         db.getDoc( mid,
           function(err,resp) {
             if (err) {
-              return alert(JSON.stringify(err));
+              alert(JSON.stringify(err));
             }
             var modeldoc = resp;
             db.getView('roomedit',
@@ -293,9 +316,50 @@ button:hover{
 
               function (err, data) {
                 if (err) {
-                  return alert(err);
+                  alert(JSON.stringify(err));
                 }
+
+                var url_model = url + '?modelid=' + mid;
+                var url_level = url + '?levelid=' + lid;
+
+                $('#content').append( $('<table/>')
+                  .append( $('<tr>')
+                    .append( $('<td>').text( 'Start:' ) )
+                    .append( $('<td>')
+                      .append( $('<a>')
+                        .text('Home')
+                        .attr('href',url) )))
+                  .append( $('<tr>')
+                    .append( $('<td>').text( 'Model:' ) )
+                    .append( $('<td>')
+                      .append( $('<a>')
+                        .text(modeldoc.name)
+                        .attr('href',url_model) )))
+                  .append( $('<tr>')
+                    .append( $('<td>').text( 'Level:' ) )
+                    .append( $('<td>')
+                      .append( $('<a>')
+                        .text(leveldoc.name)
+                        .attr('href',url_level) ))));
+
+                //var p = $('<p/>').appendTo('#content');
+                //p.append( $('<a/>').text('Home').attr('href',url) );
+                //p.append( document.createTextNode( three_spaces ) );
+                //p.append( $('<a/>')
+                //  .text('Back')
+                //  .attr('href', url + '?modelid=' + mid ) );
+
                 var n = data.rows.length;
+
+                var p = $('<p/>').text( n.toString()
+                  + ' room' + pluralSuffix( n )
+                  + ' on level ' ).appendTo('#content');
+                p.append( $('<i/>').text( leveldoc.name ) );
+                p.append( document.createTextNode( ' in model ' ) );
+                p.append( $('<i/>').text( modeldoc.name ) );
+                p.append( document.createTextNode( '.' ) );
+                p.append( $('<p/>').text( 'Please select one:' ));
+
                 for (var i = 0; i < n; ++i) {
                   var doc = data.rows[i].value;
                   if( doc.levelId != lid ) {
@@ -309,30 +373,6 @@ button:hover{
                     .text(doc.name))
                     .appendTo('#navigatorlist');
                 }
-                var p = $('<p/>').appendTo('#content');
-                p.append( $('<a/>').text('Home').attr('href',url) );
-                p.append( document.createTextNode( three_spaces ) );
-                p.append( $('<a/>')
-                  .text('Back')
-                  .attr('href', url + '?modelid=' + mid ) );
-
-                $('<p/>')
-                  .text( 'Please select a room in the list below.' )
-                  .appendTo('#content');
-
-                var table = $('<table/>').appendTo('#content');
-                table.append( '<tr><td>' + 'Model:'
-                  + '</td><td>' + modeldoc.name + '</td></tr>' );
-                table.append( '<tr><td>' + 'Level:'
-                  + '</td><td>' + leveldoc.name + '</td></tr>' );
-
-                var p = $('<p/>').text( n.toString()
-                  + ' room' + pluralSuffix( n )
-                  + ' on level ' ).appendTo('#content');
-                p.append( $('<i/>').text( leveldoc.name ) );
-                p.append( document.createTextNode( ' in model ' ) );
-                p.append( $('<i/>').text( modeldoc.name ) );
-                p.append( document.createTextNode( dotOrColon( n ) ) );
               }
             );
           }
@@ -350,7 +390,7 @@ button:hover{
     db.getDoc( mid,
       function(err,resp) {
         if (err) {
-          return alert(JSON.stringify(err));
+          alert(JSON.stringify(err));
         }
         var modeldoc = resp;
         db.getView('roomedit',
@@ -359,8 +399,24 @@ button:hover{
 
           function (err, data) {
             if (err) {
-              return alert(err);
+              alert(JSON.stringify(err));
             }
+            var url_model = url + '?modelid=' + mid;
+
+            $('#content').append( $('<table/>')
+              .append( $('<tr>')
+                .append( $('<td>').text( 'Start:' ) )
+                .append( $('<td>')
+                  .append( $('<a>')
+                    .text('Home')
+                    .attr('href',url) )))
+              .append( $('<tr>')
+                .append( $('<td>').text( 'Model:' ) )
+                .append( $('<td>')
+                  .append( $('<a>')
+                    .text(modeldoc.name)
+                    .attr('href',url_model) ))));
+
             var n = data.rows.length;
             var nLevel = 0;
             var nSheet = 0;
@@ -390,26 +446,17 @@ button:hover{
                 .append($('<a>').attr('href',s).text(doc.name))
                 .appendTo('#navigatorlist');
             }
-            var p = $('<p/>').appendTo('#content');
-            p.append( $('<a/>').text('Home').attr('href',url) );
-            p.append( document.createTextNode( three_spaces ) );
-            p.append( $('<a/>').text('Back').attr('href',url) );
-
-            $('<p/>')
-              .text( 'Please select a level or sheet in the list below.' )
-              .appendTo('#content');
-
-            var table = $('<table/>').appendTo('#content');
-            table.append( '<tr><td>' + 'Model:'
-              + '</td><td>' + modeldoc.name + '</td></tr>' );
-
             var prompt =
               nLevel.toString() + ' level' + pluralSuffix( nLevel ) + ' and ' +
               nSheet.toString() + ' sheet' + pluralSuffix( nSheet ) + ' in model ';
 
-            var p = $('<p/>').text( prompt ).appendTo('#content');
-            p.append( $('<i/>').text( modeldoc.name ) );
-            p.append( document.createTextNode( dotOrColon( n ) ) );
+            $('#content')
+              .append($('<p/>')
+                .text( prompt )
+                .append( $('<i/>').text( modeldoc.name ) )
+                .append( document.createTextNode( '.' ) ) )
+              .append($('<p/>')
+                .text( 'Please select a level or sheet:' ) );
           }
         );
       }
@@ -424,30 +471,23 @@ button:hover{
     db.getView('roomedit', 'models',
       function (err, data) {
         if (err) {
-          return alert(err);
+          alert(JSON.stringify(err));
         }
         var n = data.rows.length;
+
+        $('#content')
+          .append($('<p/>')
+            .text( n.toString() + ' model' + pluralSuffix( n )
+              + ' available. Please select one:' ));
+
+        var list = $('#navigatorlist');
+
         for (var i = 0; i < n; ++i) {
           var doc = data.rows[i].key;
           var s = url + '?modelid=' + doc._id;
-          $('<li/>').append($('<a>')
-            .attr('href',s)
-            .text(doc.name))
-          .appendTo('#navigatorlist');
+          list.append($('<li/>')
+            .append($('<a>').attr('href',s).text(doc.name)));
         }
-        var p = $('<p/>').appendTo('#content');
-        p.append( $('<a/>').text('Home').attr('href',url) );
-        p.append( document.createTextNode( three_spaces ) );
-        p.append( $('<a/>').text('Back').attr('href',url) );
-
-        $('<p/>')
-          .text( 'Please select a model in the list below.' )
-          .appendTo('#content');
-
-        var prompt = n.toString() + ' model'
-          + pluralSuffix( n ) + dotOrColon( n );
-
-        $('<p/>').text( prompt ).appendTo('#content');
       }
     );
   }

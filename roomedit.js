@@ -8,15 +8,20 @@ function dotOrColon( n ) {
   return 0 == n ? "." : ":";
 }
 
+// capitalise a word, i.e. upercase first letter
+
 function capitalise(s) {
   return s[0].toUpperCase() + s.slice(1);
 }
+
+// replace all spaces by underscores
 
 function unspace(s) {
   return s.replace(/ /g,'_');
 }
 
 // return the proper keys of the given dictionary d:
+
 function jt_get_keys(d) {
   var keys = [];
   for (var key in d) {
@@ -58,6 +63,8 @@ function rotate_current_ccw () {
   rotate_item( current_furniture, -5 );
 }
 
+// edit element properties
+
 function edit_properties_current(url) {
   if( null != current_furniture ) {
     var id = current_furniture.data("jid");
@@ -65,12 +72,19 @@ function edit_properties_current(url) {
   }
 }
 
+// save a furniture document
+
+
+// save modified element properties
+
 function save_properties(fdoc,do_save) {
+  var modified_count = 0;
+  var url_room = url + '?roomid=' + fdoc.roomId;
+
   if(do_save) {
     var a = fdoc.properties;
     var keys = jt_get_keys( a );
     var n = keys.length;
-    var modified_count = 0;
     for( var i=0; i<n; ++i ) {
       var key = keys[i];
       var val = a[key];
@@ -85,26 +99,30 @@ function save_properties(fdoc,do_save) {
       }
     }
     if( 0 < modified_count ) {
-      save_doc(fdoc);
-    }
-  }
-  var rid = fdoc.roomId;
-  window.location.href = url + '?roomid=' + rid;
-}
-
-// save a furniture document
-
-function save_doc(fdoc) {
-  if( fdoc.hasOwnProperty('loop') ) {
-    delete fdoc.loop;
-  }
-  db.saveDoc( fdoc,
-    function (err, data) {
-      if (err) {
-        return alert(err);
+      if( fdoc.hasOwnProperty('loop') ) {
+        delete fdoc.loop;
       }
+      db.saveDoc( fdoc,
+        function (err, data) {
+          if (err) {
+            console.log(err);
+            alert(JSON.stringify(err));
+            //alert(err);
+          }
+          window.location.href = url_room;
+        }
+      );
     }
-  );
+  }
+  // bad boy!
+  // cannot execute anything important here,
+  // because that will destroy the effrts of
+  // the async callback function in save_doc.
+  //var rid = fdoc.roomId;
+  //window.location.href = url + '?roomid=' + rid;
+  if( 0 == modified_count ) {
+    window.location.href = url_room;
+  }
 }
 
 // save new furniture positions
@@ -127,7 +145,17 @@ function save(a) {
 
     fdoc.transform = trxy;
 
-    save_doc( fdoc );
+    if( fdoc.hasOwnProperty('loop') ) {
+      delete fdoc.loop;
+    }
+    db.saveDoc( fdoc,
+      function (err, data) {
+        if (err) {
+          console.log(err);
+          alert(JSON.stringify(err));
+        }
+      }
+    );
   }
 }
 
