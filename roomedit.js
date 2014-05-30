@@ -112,10 +112,11 @@ function save_properties(fdoc,do_save) {
   }
   // bad boy!
   // cannot execute anything important here,
-  // because that will destroy the effrts of
-  // the async callback function in save_doc.
+  // because that will interfere with the async
+  // callback function execution in save_doc.
   //var rid = fdoc.roomId;
   //window.location.href = url + '?roomid=' + rid;
+
   if( 0 == modified_count ) {
     window.location.href = url_room;
   }
@@ -125,7 +126,7 @@ function save_properties(fdoc,do_save) {
 
 function save(a) {
 
-  $('#save').attr("disabled", "disabled");
+  //$('#save').attr("disabled", "disabled");
 
   for( var i = 0; i < a.length; ++i ) {
 
@@ -148,6 +149,7 @@ function save(a) {
           console.log(err);
           alert(JSON.stringify(err));
         }
+        document.location.reload( true );
       }
     );
   }
@@ -355,3 +357,115 @@ function raphael( roomdoc, furniture ) {
       .mouseout( tooltip_hide );
   }
 };
+
+function add_links_and_buttons_to_dom() {
+  //var url_model = url + '?modelid=' + mid;
+  //var url_level = url + '?levelid=' + lid;
+  //var url_room = url + '?roomid=' + rid;
+
+  var url_model = url + '?modelid=' + modeldoc._id;
+  var url_level = url + '?levelid=' + leveldoc._id;
+  var url_room = url + '?roomid=' + roomdoc._id;
+  var n = furniture.length;
+
+  $('#content').append( $('<table/>')
+    .append( $('<tr>')
+      .append( $('<td>').text( 'Start:' ) )
+      .append( $('<td>')
+        .append( $('<a>')
+          .text('Home')
+          .attr('href',url) )))
+    .append( $('<tr>')
+      .append( $('<td>').text( 'Model:' ) )
+      .append( $('<td>')
+        .append( $('<a>')
+          .text(modeldoc.name)
+          .attr('href',url_model) )))
+    .append( $('<tr>')
+      .append( $('<td>').text( 'Level:' ) )
+      .append( $('<td>')
+        .append( $('<a>')
+          .text(leveldoc.name)
+          .attr('href',url_level) )))
+    .append( $('<tr>')
+      .append( $('<td>').text( 'Room:' ) )
+      .append( $('<td>')
+        .append( $('<a>')
+          .text(roomdoc.name)
+          .attr('href',url_room) ))))
+    .append($('<p/>')
+      .text( n.toString()
+        + ' furniture and equipment item' + pluralSuffix( n )
+        + ' in room ' )
+      .append( $('<i/>').text( roomdoc.name ) )
+      .append( document.createTextNode( ' on level ' ) )
+      .append( $('<i/>').text( leveldoc.name ) )
+      .append( document.createTextNode( ' in model ' ) )
+      .append( $('<i/>').text( modeldoc.name ) )
+      .append( document.createTextNode( '.' ) ) )
+    .append($('<p/>')
+      .text( 'Please pick and drag furniture '
+      + 'and equipment around to select and move it, '
+      + 'then click the buttons to rotate clockwise, '
+      + 'counter-clockwise, refresh, and save.' ));
+
+  var p = $('<p/>').appendTo('#content');
+
+  p.append( $('<button/>').text('Properties')
+    .attr('onclick', 'edit_properties_current(url)' ) );
+  p.append( document.createTextNode( three_spaces ) );
+  p.append( $('<button/>').text('Rotate')
+    .attr('onclick', 'rotate_current_cw()' ) );
+  p.append( document.createTextNode( three_spaces ) );
+  p.append( $('<button/>').text('Ccw')
+    .attr('onclick', 'rotate_current_ccw()' ) );
+  p.append( document.createTextNode( three_spaces ) );
+  p.append( $('<button/>').text('Refresh')
+    .attr('onclick', 'refresh()' ) );
+  p.append( document.createTextNode( three_spaces ) );
+  p.append( $('<button/>').text('Save')
+    .attr('id', 'save')
+    .attr('onclick', 'save_all()' ) );
+}
+
+function on_roomedit_view_symbols_returned(err, data) {
+  if (err) {
+    alert(JSON.stringify(err));
+  }
+  var n = furniture.length;
+  var n2 = data.rows.length;
+  var map_symbid_to_loop = {};
+  for( var i = 0; i < n2; ++i ) {
+    var symbdoc = data.rows[i].value;
+    map_symbid_to_loop[symbdoc._id] = symbdoc.loop;
+  }
+  for( var i = 0; i < n; ++i ) {
+    furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
+  }
+  add_links_and_buttons_to_dom();
+  raphael( roomdoc, furniture );
+}
+
+function on_roomedit_view_map_room_to_furniture_returned( err, data) {
+  if (err) {
+    alert(JSON.stringify(err));
+  }
+  furniture=[]; // global
+  var symbol_ids = [];
+  var n = data.rows.length;
+  for (var i = 0; i < n; ++i) {
+    var instdoc = data.rows[i].value;
+    var fid = instdoc._id;
+    console.log( 'doc id ' + fid + ' ' + instdoc.name );
+    if( instdoc.roomId != rid ) {
+      alert( 'room ids differ in furniture ' + instdoc._id
+        + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
+    }
+    var sid = instdoc.symbolId;
+    furniture.push(instdoc);
+    symbol_ids.push( sid );
+  }
+  var q2 = { keys: JSON.stringify(symbol_ids) };
+  db.getView('roomedit', 'symbols', q2,
+    on_roomedit_view_symbols_returned );
+}

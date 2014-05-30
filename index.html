@@ -48,6 +48,11 @@ button:hover{
   var db = require('db').current();
   var $ = require('jquery');
 
+  // current documents
+
+  var modeldoc;
+  var leveldoc;
+  var roomdoc;
   var furniture;
   var current_furniture = null;
   var current_furniture_doc = null;
@@ -149,125 +154,24 @@ button:hover{
         if (err) {
           alert(JSON.stringify(err));
         }
-        var roomdoc = resp;
+        roomdoc = resp;
         var lid = roomdoc.levelId;
         db.getDoc( lid,
           function(err,resp) {
             if (err) {
               alert(JSON.stringify(err));
             }
-            var leveldoc = resp;
+            leveldoc = resp;
             var mid = leveldoc.modelId;
             db.getDoc( mid,
               function(err,resp) {
                 if (err) {
                   alert(JSON.stringify(err));
                 }
-                var modeldoc = resp;
+                modeldoc = resp;
                 var q = { key: JSON.stringify(rid) };
                 db.getView('roomedit', 'map_room_to_furniture', q,
-                  function (err, data) {
-                    if (err) {
-                      alert(JSON.stringify(err));
-                    }
-                    var furniture=[];
-                    var symbol_ids = [];
-                    var n = data.rows.length;
-                    for (var i = 0; i < n; ++i) {
-                      var instdoc = data.rows[i].value;
-                      var fid = instdoc._id;
-                      console.log( 'doc id ' + fid + ' ' + instdoc.name );
-                      if( instdoc.roomId != rid ) {
-                        alert( 'room ids differ in furniture ' + instdoc._id
-                          + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
-                      }
-                      var sid = instdoc.symbolId;
-                      furniture.push(instdoc);
-                      symbol_ids.push( sid );
-                    }
-                    var q2 = { keys: JSON.stringify(symbol_ids) };
-                    db.getView('roomedit', 'symbols', q2,
-                      function (err, data) {
-                        if (err) {
-                          alert(JSON.stringify(err));
-                        }
-                        var n2 = data.rows.length;
-                        var map_symbid_to_loop = {};
-                        for( var i = 0; i < n2; ++i ) {
-                          var symbdoc = data.rows[i].value;
-                          map_symbid_to_loop[symbdoc._id] = symbdoc.loop;
-                        }
-                        for( var i = 0; i < furniture.length; ++i ) {
-                          furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
-                        }
-                        var url_model = url + '?modelid=' + mid;
-                        var url_level = url + '?levelid=' + lid;
-                        var url_room = url + '?roomid=' + rid;
-
-                        $('#content').append( $('<table/>')
-                          .append( $('<tr>')
-                            .append( $('<td>').text( 'Start:' ) )
-                            .append( $('<td>')
-                              .append( $('<a>')
-                                .text('Home')
-                                .attr('href',url) )))
-                          .append( $('<tr>')
-                            .append( $('<td>').text( 'Model:' ) )
-                            .append( $('<td>')
-                              .append( $('<a>')
-                                .text(modeldoc.name)
-                                .attr('href',url_model) )))
-                          .append( $('<tr>')
-                            .append( $('<td>').text( 'Level:' ) )
-                            .append( $('<td>')
-                              .append( $('<a>')
-                                .text(leveldoc.name)
-                                .attr('href',url_level) )))
-                          .append( $('<tr>')
-                            .append( $('<td>').text( 'Room:' ) )
-                            .append( $('<td>')
-                              .append( $('<a>')
-                                .text(roomdoc.name)
-                                .attr('href',url_room) ))))
-                          .append($('<p/>')
-                            .text( n.toString()
-                              + ' furniture and equipment item' + pluralSuffix( n )
-                              + ' in room ' )
-                            .append( $('<i/>').text( roomdoc.name ) )
-                            .append( document.createTextNode( ' on level ' ) )
-                            .append( $('<i/>').text( leveldoc.name ) )
-                            .append( document.createTextNode( ' in model ' ) )
-                            .append( $('<i/>').text( modeldoc.name ) )
-                            .append( document.createTextNode( '.' ) ) )
-                          .append($('<p/>')
-                            .text( 'Please pick and drag furniture '
-                            + 'and equipment around to select and move it, '
-                            + 'then click the buttons to rotate clockwise, '
-                            + 'counter-clockwise, refresh, and save.' ));
-
-                        var p = $('<p/>').appendTo('#content');
-
-                        p.append( $('<button/>').text('Properties')
-                          .attr('onclick', 'edit_properties_current(url)' ) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<button/>').text('Rotate')
-                          .attr('onclick', 'rotate_current_cw()' ) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<button/>').text('Ccw')
-                          .attr('onclick', 'rotate_current_ccw()' ) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<button/>').text('Refresh')
-                          .attr('onclick', 'refresh()' ) );
-                        p.append( document.createTextNode( three_spaces ) );
-                        p.append( $('<button/>').text('Save')
-                          .attr('id', 'save')
-                          .attr('onclick', 'save_all()' ) );
-
-                        raphael( roomdoc, furniture );
-                      }
-                    );
-                  }
-                );
+                  on_roomedit_view_map_room_to_furniture_returned );
               }
             );
           }
@@ -287,14 +191,14 @@ button:hover{
         if (err) {
           alert(JSON.stringify(err));
         }
-        var leveldoc = resp;
+        leveldoc = resp;
         var mid = leveldoc.modelId;
         db.getDoc( mid,
           function(err,resp) {
             if (err) {
               alert(JSON.stringify(err));
             }
-            var modeldoc = resp;
+            modeldoc = resp;
             db.getView('roomedit',
               'map_level_to_room',
               { key: JSON.stringify(lid) },
@@ -342,7 +246,7 @@ button:hover{
                   var doc = data.rows[i].value;
                   if( doc.levelId != lid ) {
                     alert( 'model ids differ: doc ' + doc.levelId
-                          + ", url " + lid );
+                      + ", url " + lid );
                   }
                   var s = url + '?roomid=' + doc._id;
                   $('<li/>')
@@ -370,7 +274,7 @@ button:hover{
         if (err) {
           alert(JSON.stringify(err));
         }
-        var modeldoc = resp;
+        modeldoc = resp;
         db.getView('roomedit',
           'map_model_to_level_and_sheet',
           { key: JSON.stringify(mid) },
