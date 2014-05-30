@@ -208,8 +208,7 @@ button:hover{
 
                 var n = data.rows.length;
 
-                var p = $('<p/>').text( n.toString()
-                  + ' room' + pluralSuffix( n )
+                var p = $('<p/>').text( thingies( n, 'room' )
                   + ' on level ' ).appendTo('#content');
                 p.append( $('<i/>').text( leveldoc.name ) );
                 p.append( document.createTextNode( ' in model ' ) );
@@ -292,16 +291,14 @@ button:hover{
             }
 
             var htemplate = handlebars.compile(
-              '<p>{{nl}} level{{nls}} and '
-              + '{{ns}} sheet{{nss}} in '
+              '<p>{{levels}} and '
+              + '{{sheets}} in '
               + 'model <i>{{model}}</i>.</p>'
               + '<p>Please select a level or sheet:</p>' );
 
             var hresult = htemplate({
-              nl: nLevel.toString(),
-              nls: pluralSuffix( nLevel ),
-              ns: nSheet.toString(),
-              nss: pluralSuffix( nSheet ),
+              levels: thingies( nLevel, 'level' ),
+              sheets: thingies( nSheet, 'sheet' ),
               model: modeldoc.name});
 
             $('#content').append( hresult );
@@ -325,7 +322,7 @@ button:hover{
 
         $('#content')
           .append($('<p/>')
-            .text( n.toString() + ' model' + pluralSuffix( n )
+            .text( thingies( n, 'model' )
               + ' available. Please select one:' ));
 
         var list = $('#navigatorlist');

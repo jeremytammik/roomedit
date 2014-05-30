@@ -10,6 +10,10 @@ function dotOrColon( n ) {
   return 0 == n ? "." : ":";
 }
 
+function thingies( n, s ) {
+  return n.toString() + ' ' + s + pluralSuffix( n );
+}
+
 // capitalise a word, i.e. uppercase first letter
 
 function capitalise(s) {
@@ -393,9 +397,7 @@ function add_buttons_to_dom() {
 
   $('#content')
     .append( $('<p/>')
-      .text( n.toString()
-        + ' furniture and equipment item' + pluralSuffix( n )
-        + ' in room ' )
+      .text( thingies( n, 'furniture and equipment item' ) + ' in room ' )
       .append( $('<i/>').text( roomdoc.name ) )
       .append( document.createTextNode( ' on level ' ) )
       .append( $('<i/>').text( leveldoc.name ) )
@@ -443,7 +445,7 @@ function on_roomedit_view_symbols_returned(err, data) {
   raphael( roomdoc, furniture );
 }
 
-function on_roomedit_view_map_room_to_furniture_returned( err, data) {
+function on_roomedit_view_map_room_to_furniture_returned(err, data) {
   if (err) {
     alert(JSON.stringify(err));
   }
@@ -453,11 +455,7 @@ function on_roomedit_view_map_room_to_furniture_returned( err, data) {
   for (var i = 0; i < n; ++i) {
     var instdoc = data.rows[i].value;
     var fid = instdoc._id;
-    console.log( 'furniture doc id ' + fid + ' ' + instdoc.name );
-    //if( instdoc.roomId != rid ) {
-    //  alert( 'room ids differ in furniture ' + instdoc._id
-    //    + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
-    //}
+    console.log( 'furniture id ' + fid + ' ' + instdoc.name );
     var sid = instdoc.symbolId;
     furniture.push(instdoc);
     symbol_ids.push( sid );
