@@ -148,28 +148,25 @@ button:hover{
     // display the selected room and its furniture
     //======================================================
 
-    var rid = paramdict['roomid'];
-    db.getDoc( rid,
+    db.getDoc( paramdict['roomid'],
       function(err,resp) {
         if (err) {
           alert(JSON.stringify(err));
         }
         roomdoc = resp;
-        var lid = roomdoc.levelId;
-        db.getDoc( lid,
+        db.getDoc( roomdoc.levelId,
           function(err,resp) {
             if (err) {
               alert(JSON.stringify(err));
             }
             leveldoc = resp;
-            var mid = leveldoc.modelId;
-            db.getDoc( mid,
+            db.getDoc( leveldoc.modelId,
               function(err,resp) {
                 if (err) {
                   alert(JSON.stringify(err));
                 }
                 modeldoc = resp;
-                var q = { key: JSON.stringify(rid) };
+                var q = { key: JSON.stringify(roomdoc._id) };
                 db.getView('roomedit', 'map_room_to_furniture', q,
                   on_roomedit_view_map_room_to_furniture_returned );
               }
@@ -192,8 +189,7 @@ button:hover{
           alert(JSON.stringify(err));
         }
         leveldoc = resp;
-        var mid = leveldoc.modelId;
-        db.getDoc( mid,
+        db.getDoc( leveldoc.modelId,
           function(err,resp) {
             if (err) {
               alert(JSON.stringify(err));
@@ -207,30 +203,6 @@ button:hover{
                 if (err) {
                   alert(JSON.stringify(err));
                 }
-
-                //var url_model = url + '?modelid=' + mid;
-                //var url_level = url + '?levelid=' + lid;
-
-                //$('#content').append( $('<table/>')
-                //  .append( $('<tr>')
-                //    .append( $('<td>').text( 'Start:' ) )
-                //    .append( $('<td>')
-                //      .append( $('<a>')
-                //        .text('Home')
-                //        .attr('href',url) )))
-                //  .append( $('<tr>')
-                //    .append( $('<td>').text( 'Model:' ) )
-                //    .append( $('<td>')
-                //      .append( $('<a>')
-                //        .text(modeldoc.name)
-                //        .attr('href',url_model) )))
-                //  .append( $('<tr>')
-                //    .append( $('<td>').text( 'Level:' ) )
-                //    .append( $('<td>')
-                //      .append( $('<a>')
-                //        .text(leveldoc.name)
-                //        .attr('href',url_level) ))));
-
                 add_back_links_to_dom();
 
                 var n = data.rows.length;
@@ -285,22 +257,6 @@ button:hover{
             if (err) {
               alert(JSON.stringify(err));
             }
-
-            //var url_model = url + '?modelid=' + mid;
-
-            //$('#content').append( $('<table/>')
-            //  .append( $('<tr>')
-            //    .append( $('<td>').text( 'Start:' ) )
-            //    .append( $('<td>')
-            //      .append( $('<a>')
-            //        .text('Home')
-            //        .attr('href',url) )))
-            //  .append( $('<tr>')
-            //    .append( $('<td>').text( 'Model:' ) )
-            //    .append( $('<td>')
-            //      .append( $('<a>')
-            //        .text(modeldoc.name)
-            //        .attr('href',url_model) ))));
 
             add_back_links_to_dom();
 

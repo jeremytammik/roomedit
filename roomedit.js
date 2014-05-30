@@ -1,3 +1,5 @@
+// roomedit.js - simplified 2D BIM room editor
+
 // formatting utility
 
 function pluralSuffix( n ) {
@@ -8,7 +10,7 @@ function dotOrColon( n ) {
   return 0 == n ? "." : ":";
 }
 
-// capitalise a word, i.e. upercase first letter
+// capitalise a word, i.e. uppercase first letter
 
 function capitalise(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -45,7 +47,7 @@ function get_url_paramdict( params ) {
   return paramdict;
 }
 
-// rotation support
+// furniture rotation support
 
 function rotate_item (item, angle) {
   if( null != item ) {
@@ -125,11 +127,7 @@ function save_properties(fdoc,do_save) {
 // save new furniture positions
 
 function save(a) {
-
-  //$('#save').attr("disabled", "disabled");
-
   for( var i = 0; i < a.length; ++i ) {
-
     var f = a[i];
     var id = f.data("jid");
     var txy = f.transform().toString().substring(1).split(/[,r]/);
@@ -161,7 +159,6 @@ function save_all() {
 
 function refresh() {
   document.location.reload( true );
-  $('#save').removeAttr("disabled");
 }
 
 // data extraction support
@@ -358,8 +355,7 @@ function raphael( roomdoc, furniture ) {
   }
 };
 
-//===================================================
-// helper and callback functions for a selected room
+// set up the back pointer navigation links for home, model, level, room
 
 function add_back_links_to_dom() {
 
@@ -372,34 +368,6 @@ function add_back_links_to_dom() {
         .text('Home')
         .attr('href',url) )));
 
-  //if( modeldoc ) {
-  //  var url_model = url + '?modelid=' + modeldoc._id;
-  //  table.append( $('<tr>')
-  //    .append( $('<td>').text( 'Model:' ) )
-  //    .append( $('<td>')
-  //      .append( $('<a>')
-  //        .text(modeldoc.name)
-  //        .attr('href',url_model) )));
-  //}
-  //if( leveldoc ) {
-  //  var url_level = url + '?levelid=' + leveldoc._id;
-  //  table.append( $('<tr>')
-  //    .append( $('<td>').text( 'Level:' ) )
-  //    .append( $('<td>')
-  //      .append( $('<a>')
-  //        .text(leveldoc.name)
-  //        .attr('href',url_level) )));
-  //}
-  //if( roomdoc ) {
-  //  var url_room = url + '?roomid=' + roomdoc._id;
-  //  table.append( $('<tr>')
-  //    .append( $('<td>').text( 'Room:' ) )
-  //    .append( $('<td>')
-  //      .append( $('<a>')
-  //        .text(roomdoc.name)
-  //        .attr('href',url_room) )));
-  //}
-
   var add_entry = function( doc, label ) {
     if( doc ) {
       var s = label.toLowerCase();
@@ -411,11 +379,14 @@ function add_back_links_to_dom() {
             .text(doc.name)
             .attr('href',url2) )));
     }
-  }
+  };
   add_entry( modeldoc, 'Model' );
   add_entry( leveldoc, 'Level' );
   add_entry( roomdoc, 'Room' );
 }
+
+//===================================================
+// helper and callback functions for a selected room
 
 function add_buttons_to_dom() {
   var n = furniture.length;
@@ -439,21 +410,18 @@ function add_buttons_to_dom() {
 
   var p = $('<p/>').appendTo('#content');
 
-  p.append( $('<button/>').text('Properties')
-    .attr('onclick', 'edit_properties_current(url)' ) );
-  p.append( document.createTextNode( three_spaces ) );
-  p.append( $('<button/>').text('Rotate')
-    .attr('onclick', 'rotate_current_cw()' ) );
-  p.append( document.createTextNode( three_spaces ) );
-  p.append( $('<button/>').text('Ccw')
-    .attr('onclick', 'rotate_current_ccw()' ) );
-  p.append( document.createTextNode( three_spaces ) );
-  p.append( $('<button/>').text('Refresh')
-    .attr('onclick', 'refresh()' ) );
-  p.append( document.createTextNode( three_spaces ) );
-  p.append( $('<button/>').text('Save')
-    .attr('id', 'save')
-    .attr('onclick', 'save_all()' ) );
+  var add_button = function( txt, js ) {
+    p.append( $('<button/>').text( txt )
+      .attr('onclick', js ) );
+    p.append( document.createTextNode(
+      three_spaces ) );
+  };
+  add_button( 'Properties', 'edit_properties_current(url)' );
+  add_button( 'Rotate', 'rotate_current_cw()' );
+  add_button( 'Ccw', 'rotate_current_ccw()' );
+  add_button( 'Refresh', 'refresh()' );
+  add_button( 'Save', 'save_all()' );
+
 }
 
 function on_roomedit_view_symbols_returned(err, data) {
@@ -485,11 +453,11 @@ function on_roomedit_view_map_room_to_furniture_returned( err, data) {
   for (var i = 0; i < n; ++i) {
     var instdoc = data.rows[i].value;
     var fid = instdoc._id;
-    console.log( 'doc id ' + fid + ' ' + instdoc.name );
-    if( instdoc.roomId != rid ) {
-      alert( 'room ids differ in furniture ' + instdoc._id
-        + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
-    }
+    console.log( 'furniture doc id ' + fid + ' ' + instdoc.name );
+    //if( instdoc.roomId != rid ) {
+    //  alert( 'room ids differ in furniture ' + instdoc._id
+    //    + ':\ndoc ' + instdoc.roomId + "\nurl " + rid );
+    //}
     var sid = instdoc.symbolId;
     furniture.push(instdoc);
     symbol_ids.push( sid );
