@@ -372,33 +372,49 @@ function add_back_links_to_dom() {
         .text('Home')
         .attr('href',url) )));
 
-  if( modeldoc ) {
-    var url_model = url + '?modelid=' + modeldoc._id;
-    table.append( $('<tr>')
-      .append( $('<td>').text( 'Model:' ) )
-      .append( $('<td>')
-        .append( $('<a>')
-          .text(modeldoc.name)
-          .attr('href',url_model) )));
+  //if( modeldoc ) {
+  //  var url_model = url + '?modelid=' + modeldoc._id;
+  //  table.append( $('<tr>')
+  //    .append( $('<td>').text( 'Model:' ) )
+  //    .append( $('<td>')
+  //      .append( $('<a>')
+  //        .text(modeldoc.name)
+  //        .attr('href',url_model) )));
+  //}
+  //if( leveldoc ) {
+  //  var url_level = url + '?levelid=' + leveldoc._id;
+  //  table.append( $('<tr>')
+  //    .append( $('<td>').text( 'Level:' ) )
+  //    .append( $('<td>')
+  //      .append( $('<a>')
+  //        .text(leveldoc.name)
+  //        .attr('href',url_level) )));
+  //}
+  //if( roomdoc ) {
+  //  var url_room = url + '?roomid=' + roomdoc._id;
+  //  table.append( $('<tr>')
+  //    .append( $('<td>').text( 'Room:' ) )
+  //    .append( $('<td>')
+  //      .append( $('<a>')
+  //        .text(roomdoc.name)
+  //        .attr('href',url_room) )));
+  //}
+
+  var add_entry = function( doc, label ) {
+    if( doc ) {
+      var s = label.toLowerCase();
+      var url2 = url + '?' + s + 'id=' + doc._id;
+      table.append( $('<tr>')
+        .append( $('<td>').text( label + ':' ) )
+        .append( $('<td>')
+          .append( $('<a>')
+            .text(doc.name)
+            .attr('href',url2) )));
+    }
   }
-  if( leveldoc ) {
-    var url_level = url + '?levelid=' + leveldoc._id;
-    table.append( $('<tr>')
-      .append( $('<td>').text( 'Level:' ) )
-      .append( $('<td>')
-        .append( $('<a>')
-          .text(leveldoc.name)
-          .attr('href',url_level) )));
-  }
-  if( roomdoc ) {
-    var url_room = url + '?roomid=' + roomdoc._id;
-    table.append( $('<tr>')
-      .append( $('<td>').text( 'Room:' ) )
-      .append( $('<td>')
-        .append( $('<a>')
-          .text(roomdoc.name)
-          .attr('href',url_room) )));
-  }
+  add_entry( modeldoc, 'Model' );
+  add_entry( leveldoc, 'Level' );
+  add_entry( roomdoc, 'Room' );
 }
 
 function add_buttons_to_dom() {
