@@ -358,42 +358,54 @@ function raphael( roomdoc, furniture ) {
   }
 };
 
-function add_links_and_buttons_to_dom() {
-  //var url_model = url + '?modelid=' + mid;
-  //var url_level = url + '?levelid=' + lid;
-  //var url_room = url + '?roomid=' + rid;
+//===================================================
+// helper and callback functions for a selected room
 
-  var url_model = url + '?modelid=' + modeldoc._id;
-  var url_level = url + '?levelid=' + leveldoc._id;
-  var url_room = url + '?roomid=' + roomdoc._id;
-  var n = furniture.length;
+function add_back_links_to_dom() {
 
-  $('#content').append( $('<table/>')
-    .append( $('<tr>')
-      .append( $('<td>').text( 'Start:' ) )
-      .append( $('<td>')
-        .append( $('<a>')
-          .text('Home')
-          .attr('href',url) )))
-    .append( $('<tr>')
+  var table = $('#content').append( $('<table/>') );
+
+  table.append( $('<tr>')
+    .append( $('<td>').text( 'Start:' ) )
+    .append( $('<td>')
+      .append( $('<a>')
+        .text('Home')
+        .attr('href',url) )));
+
+  if( modeldoc ) {
+    var url_model = url + '?modelid=' + modeldoc._id;
+    table.append( $('<tr>')
       .append( $('<td>').text( 'Model:' ) )
       .append( $('<td>')
         .append( $('<a>')
           .text(modeldoc.name)
-          .attr('href',url_model) )))
-    .append( $('<tr>')
+          .attr('href',url_model) )));
+  }
+  if( leveldoc ) {
+    var url_level = url + '?levelid=' + leveldoc._id;
+    table.append( $('<tr>')
       .append( $('<td>').text( 'Level:' ) )
       .append( $('<td>')
         .append( $('<a>')
           .text(leveldoc.name)
-          .attr('href',url_level) )))
-    .append( $('<tr>')
+          .attr('href',url_level) )));
+  }
+  if( roomdoc ) {
+    var url_room = url + '?roomid=' + roomdoc._id;
+    table.append( $('<tr>')
       .append( $('<td>').text( 'Room:' ) )
       .append( $('<td>')
         .append( $('<a>')
           .text(roomdoc.name)
-          .attr('href',url_room) ))))
-    .append($('<p/>')
+          .attr('href',url_room) )));
+  }
+}
+
+function add_buttons_to_dom() {
+  var n = furniture.length;
+
+  $('#content')
+    .append( $('<p/>')
       .text( n.toString()
         + ' furniture and equipment item' + pluralSuffix( n )
         + ' in room ' )
@@ -442,7 +454,8 @@ function on_roomedit_view_symbols_returned(err, data) {
   for( var i = 0; i < n; ++i ) {
     furniture[i].loop = map_symbid_to_loop[furniture[i].symbolId];
   }
-  add_links_and_buttons_to_dom();
+  add_back_links_to_dom();
+  add_buttons_to_dom();
   raphael( roomdoc, furniture );
 }
 

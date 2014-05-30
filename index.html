@@ -50,10 +50,10 @@ button:hover{
 
   // current documents
 
-  var modeldoc;
-  var leveldoc;
-  var roomdoc;
-  var furniture;
+  var modeldoc = null;
+  var leveldoc = null;
+  var roomdoc = null;
+  var furniture = null;
   var current_furniture = null;
   var current_furniture_doc = null;
   var all_furniture = [];
@@ -208,28 +208,30 @@ button:hover{
                   alert(JSON.stringify(err));
                 }
 
-                var url_model = url + '?modelid=' + mid;
-                var url_level = url + '?levelid=' + lid;
+                //var url_model = url + '?modelid=' + mid;
+                //var url_level = url + '?levelid=' + lid;
 
-                $('#content').append( $('<table/>')
-                  .append( $('<tr>')
-                    .append( $('<td>').text( 'Start:' ) )
-                    .append( $('<td>')
-                      .append( $('<a>')
-                        .text('Home')
-                        .attr('href',url) )))
-                  .append( $('<tr>')
-                    .append( $('<td>').text( 'Model:' ) )
-                    .append( $('<td>')
-                      .append( $('<a>')
-                        .text(modeldoc.name)
-                        .attr('href',url_model) )))
-                  .append( $('<tr>')
-                    .append( $('<td>').text( 'Level:' ) )
-                    .append( $('<td>')
-                      .append( $('<a>')
-                        .text(leveldoc.name)
-                        .attr('href',url_level) ))));
+                //$('#content').append( $('<table/>')
+                //  .append( $('<tr>')
+                //    .append( $('<td>').text( 'Start:' ) )
+                //    .append( $('<td>')
+                //      .append( $('<a>')
+                //        .text('Home')
+                //        .attr('href',url) )))
+                //  .append( $('<tr>')
+                //    .append( $('<td>').text( 'Model:' ) )
+                //    .append( $('<td>')
+                //      .append( $('<a>')
+                //        .text(modeldoc.name)
+                //        .attr('href',url_model) )))
+                //  .append( $('<tr>')
+                //    .append( $('<td>').text( 'Level:' ) )
+                //    .append( $('<td>')
+                //      .append( $('<a>')
+                //        .text(leveldoc.name)
+                //        .attr('href',url_level) ))));
+
+                add_back_links_to_dom();
 
                 var n = data.rows.length;
 
@@ -283,21 +285,24 @@ button:hover{
             if (err) {
               alert(JSON.stringify(err));
             }
-            var url_model = url + '?modelid=' + mid;
 
-            $('#content').append( $('<table/>')
-              .append( $('<tr>')
-                .append( $('<td>').text( 'Start:' ) )
-                .append( $('<td>')
-                  .append( $('<a>')
-                    .text('Home')
-                    .attr('href',url) )))
-              .append( $('<tr>')
-                .append( $('<td>').text( 'Model:' ) )
-                .append( $('<td>')
-                  .append( $('<a>')
-                    .text(modeldoc.name)
-                    .attr('href',url_model) ))));
+            //var url_model = url + '?modelid=' + mid;
+
+            //$('#content').append( $('<table/>')
+            //  .append( $('<tr>')
+            //    .append( $('<td>').text( 'Start:' ) )
+            //    .append( $('<td>')
+            //      .append( $('<a>')
+            //        .text('Home')
+            //        .attr('href',url) )))
+            //  .append( $('<tr>')
+            //    .append( $('<td>').text( 'Model:' ) )
+            //    .append( $('<td>')
+            //      .append( $('<a>')
+            //        .text(modeldoc.name)
+            //        .attr('href',url_model) ))));
+
+            add_back_links_to_dom();
 
             var n = data.rows.length;
             var nLevel = 0;
