@@ -47,6 +47,7 @@ button:hover{
 
   var db = require('db').current();
   var $ = require('jquery');
+  var handlebars = require('handlebars');
 
   // current documents
 
@@ -289,17 +290,21 @@ button:hover{
                 .append($('<a>').attr('href',s).text(doc.name))
                 .appendTo('#navigatorlist');
             }
-            var prompt =
-              nLevel.toString() + ' level' + pluralSuffix( nLevel ) + ' and ' +
-              nSheet.toString() + ' sheet' + pluralSuffix( nSheet ) + ' in model ';
 
-            $('#content')
-              .append($('<p/>')
-                .text( prompt )
-                .append( $('<i/>').text( modeldoc.name ) )
-                .append( document.createTextNode( '.' ) ) )
-              .append($('<p/>')
-                .text( 'Please select a level or sheet:' ) );
+            var htemplate = handlebars.compile(
+              '<p>{{nl}} level{{nls}} and '
+              + '{{ns}} sheet{{nss}} in '
+              + 'model <i>{{model}}</i>.</p>'
+              + '<p>Please select a level or sheet:</p>' );
+
+            var hresult = htemplate({
+              nl: nLevel.toString(),
+              nls: pluralSuffix( nLevel ),
+              ns: nSheet.toString(),
+              nss: pluralSuffix( nSheet ),
+              model: modeldoc.name});
+
+            $('#content').append( hresult );
           }
         );
       }

@@ -7,9 +7,10 @@
   "load": "lib/app",
   "dependencies": {
     "attachments": null,
-    "modules": null,
-    "properties": null,
     "db": null,
-    "jquery": null
+    "handlebars":null,
+    "modules": null,
+    "jquery": null,
+    "properties": null
   }
 }
