@@ -134,7 +134,10 @@ function save(a) {
   for( var i = 0; i < a.length; ++i ) {
     var f = a[i];
     var id = f.data("jid");
-    var txy = f.transform().toString().substring(1).split(/[,r]/);
+
+    var txy = f.transform().toString()
+      .substring(1).split(/[,r]/);
+
     var trxy = 'R' + f.data('angle')
       + 'T' + txy[0] + "," + txy[1];
 
