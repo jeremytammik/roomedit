@@ -37,7 +37,7 @@ The detailed analysis, implementation and development process is discussed by [T
 
 ## Update
 
-Here is a
+November 2015 &ndash; Here is a
 recent [summary and overview description](http://thebuildingcoder.typepad.com/blog/2015/11/connecting-desktop-and-cloud-room-editor-update.html#3) of
 this project.
 
