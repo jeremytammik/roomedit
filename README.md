@@ -28,7 +28,7 @@ including a [two-minute video recording](https://www.youtube.com/watch?v=-FjXWok
 The complete project presentation including a video recording and all materials is provided by the Autodesk University 2013 online class
 [DV1736 &ndash; *Cloud-Based, Real-Time, Round-Trip, 2D Revit Model Editing on Any Mobile Device*](http://au.autodesk.com/au-online/classes-on-demand/class-catalog/2013/building-design-suite/dv1736).
 
-The detailed analysis, implementation and development process is discussed by The Building Coder in the following categories:
+The detailed analysis, implementation and development process is discussed by [The Building Coder](http://thebuildingcoder.typepad.com) in the following categories:
 
 - [Cloud](http://thebuildingcoder.typepad.com/blog/cloud)
 - [Desktop](http://thebuildingcoder.typepad.com/blog/desktop)
@@ -36,10 +36,6 @@ The detailed analysis, implementation and development process is discussed by Th
 
 
 ## Update
-
-Please also refer to the discussion in [The Building Coder](http://thebuildingcoder.typepad.com)
-[cloud](http://thebuildingcoder.typepad.com/blog/cloud) and
-[desktop](http://thebuildingcoder.typepad.com/blog/desktop) categories.
 
 Here is a
 recent [summary and overview description](http://thebuildingcoder.typepad.com/blog/2015/11/connecting-desktop-and-cloud-room-editor-update.html#3) of
