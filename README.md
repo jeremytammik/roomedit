@@ -42,6 +42,20 @@ recent [summary and overview description](http://thebuildingcoder.typepad.com/bl
 this project.
 
 
+## Installation
+
+One way to run the roomedit CouchDB app is to host it on a public CouchDB hosting platform such
+as [Iris Couch](http://www.iriscouch.com).
+
+In that case, you only have to fork and clone this repository and launch your version of the app on that host.
+
+Another way is to install and
+run both [Apache CouchDB](http://couchdb.apache.org) and
+the roomedit app itself locally on your system.
+
+That's all you need.
+
+
 ## Author
 
 Jeremy Tammik,
