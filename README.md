@@ -51,7 +51,7 @@ In that case, you only have to fork and clone this repository and launch your ve
 
 Another way is to install and
 run both [Apache CouchDB](http://couchdb.apache.org) and
-the roomedit app itself locally on your system.
+the roomedit app itself locally on your own system.
 
 That's all you need.
 
