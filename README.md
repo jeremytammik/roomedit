@@ -55,7 +55,10 @@ the roomedit app itself locally on your own system.
 
 That's all you need.
 
-While developing this, I used Kanso on the Mac Unix command line to install the database definition in CouchDB from the files in my local system.
+That's not yet all, though...
+
+While developing this, I used Kanso on the Mac Unix command line to install the database definition in CouchDB from my hand-edited local system files.
+
 I then replicated the local Unix-hosted database to a cloud-hosted IrisCouch one, and replicated that from the cloud to the Windows system running Revit.
 
 I was unable to get Kanso running directly on Windows, and also failed with other similar CouchDB installation tools.
